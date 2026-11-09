@@ -1,0 +1,10 @@
+Bar 1.0 Bar.qml
+WorkspaceIndicator 1.0 WorkspaceIndicator.qml
+WindowTitle 1.0 WindowTitle.qml
+Clock 1.0 Clock.qml
+SystemStats 1.0 SystemStats.qml
+LogoMark 1.0 LogoMark.qml
+StatItem 1.0 StatItem.qml
+NetworkItem 1.0 NetworkItem.qml
+BatteryItem 1.0 BatteryItem.qml
+SystemTray 1.0 SystemTray.qml

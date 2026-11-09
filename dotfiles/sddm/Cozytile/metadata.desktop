@@ -1,0 +1,12 @@
+[SddmGreeterTheme]
+Name=Cozytile
+Description=Cozytile login: floating two-tone bar, centered card
+Author=Cozytile for Quickshell
+Version=1.0
+Website=
+Type=sddm-theme
+MainScript=Main.qml
+ConfigFile=theme.conf
+Theme-Id=cozytile
+Theme-API=2.0
+QtVersion=6

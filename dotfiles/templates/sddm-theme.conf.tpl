@@ -1,0 +1,10 @@
+[General]
+background={{wallpaper}}
+bg={{bg}}
+panel={{dim}}
+field={{bg3}}
+fg={{fg}}
+fg2={{fg2}}
+accent={{accent}}
+error={{red}}
+label={{label}}

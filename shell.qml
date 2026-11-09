@@ -1,0 +1,117 @@
+//@ pragma UseQApplication
+import QtQuick
+import Quickshell
+import Quickshell.Io
+import "config"
+import "services"
+import "modules/bar"
+import "modules/launcher"
+import "modules/island"
+import "modules/audio"
+import "modules/power"
+import "modules/wallpaper"
+
+ShellRoot {
+    // ---- keybind entry points: `qs -c cozytile ipc call <target> <function>` ----
+    IpcHandler {
+        target: "launcher"
+        function toggle(): void { UiState.toggle("launcher"); }
+        function open(): void { UiState.closeAll(); UiState.launcher = true; }
+        // open pre-filled, e.g. `ipc call launcher search "5 km to miles"`
+        function search(text: string): void { UiState.closeAll(); UiState.launcherQuery = text; UiState.launcher = true; }
+        function close(): void { UiState.launcher = false; }
+        // launch by desktop-entry id, e.g. `ipc call launcher launch org.gnome.Calculator`
+        function launch(id: string): bool {
+            const e = DesktopEntries.byId(id) ?? DesktopEntries.heuristicLookup(id);
+            if (!e) return false;
+            e.execute();
+            return true;
+        }
+    }
+    IpcHandler {
+        target: "notifications"
+        function toggle(): void { UiState.toggleIsland(); }     // notifications live in the island
+        function clear(): void { NotificationService.clearAll(); }
+        function dnd(): void { NotificationService.toggleDnd(); }
+    }
+    IpcHandler {
+        target: "island"
+        function toggle(): void { UiState.toggleIsland(); }
+        function close(): void { UiState.islandOpenOn = ""; }
+    }
+    IpcHandler {
+        target: "timer"
+        // spec: 5m, 90s, 1h30m, 25:00; a bare number means minutes
+        function start(spec: string): bool { return TimerService.start(TimerService.parse(spec), ""); }
+        function stop(): void { TimerService.stop(); }
+        function toggle(): void { TimerService.toggle(); }
+        function add(spec: string): void { TimerService.add(TimerService.parse(spec)); }
+        function status(): string { return TimerService.active ? TimerService.format(TimerService.remaining) + (TimerService.paused ? " (paused)" : "") : "idle"; }
+    }
+    IpcHandler {
+        target: "keys"
+        // called by Hyprland binds on Caps/Num/Scroll lock; re-reads the lock state
+        function refresh(): void { LockKeysService.refresh(); }
+        // debug: pretend a lock changed (which = caps|num|scroll)
+        function test(which: string, on: bool): void {
+            LockKeysService._apply(which === "caps" ? on : LockKeysService.caps, which === "num" ? on : LockKeysService.num, which === "scroll" ? on : LockKeysService.scroll);
+        }
+    }
+    IpcHandler {
+        target: "power"
+        function toggle(): void { UiState.toggle("power"); }
+    }
+    IpcHandler {
+        target: "wallpaper"
+        function toggle(): void { UiState.toggle("wallpaper"); }
+        function set(path: string): void { WallpaperService.set(path, ""); }
+        // theme the whole desktop from the wallpaper: on | off | toggle
+        function theming(mode: string): void { ThemeService.setTheming(mode === "toggle" ? !Settings.wallpaperTheming : mode === "on"); }
+    }
+    IpcHandler {
+        target: "workspace"
+        function goto(id: int): void { HyprlandService.focusWorkspace(id); }
+        function next(): void { HyprlandService.stepWorkspace(1); }
+        function prev(): void { HyprlandService.stepWorkspace(-1); }
+    }
+    IpcHandler {
+        target: "theme"
+        function next(): void { Theme.next(); }
+        function set(name: string): void { Theme.apply(name); }
+        function get(): string { return Theme.name; }
+        // derive the optional "wallpaper" theme from an image (matugen), without touching other themes
+        function fromImage(path: string): void { ThemeService.generate(path); }
+    }
+    IpcHandler {
+        target: "audio"
+        function up(): void { AudioService.changeVolume(0.05); }
+        function down(): void { AudioService.changeVolume(-0.05); }
+        function mute(): void { AudioService.toggleMute(); }
+        function micMute(): void { AudioService.toggleMic(); }
+    }
+    IpcHandler {
+        target: "brightness"
+        function up(): void { BrightnessService.change("brightness", 5); }
+        function down(): void { BrightnessService.change("brightness", -5); }
+        function kbdUp(): void { BrightnessService.change("kbd", 10); }
+        function kbdDown(): void { BrightnessService.change("kbd", -10); }
+    }
+
+    // ---- per-screen bar (follows monitor hotplug) ----
+    Variants {
+        model: Quickshell.screens
+        Bar { required property var modelData; screen: modelData }
+    }
+
+    // ---- dynamic island (one per screen; hides itself on narrow screens) ----
+    Variants {
+        model: Quickshell.screens
+        Island { required property var modelData; screen: modelData }
+    }
+
+    // ---- overlays (live on the focused screen) ----
+    Launcher {}
+    AudioPicker {}
+    PowerMenu {}
+    WallpaperSelector {}
+}

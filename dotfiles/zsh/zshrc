@@ -1,0 +1,40 @@
+# ~/.zshrc
+
+# 1. History (Don't lose your commands)
+HISTFILE=~/.zsh_history
+HISTSIZE=10000
+SAVEHIST=10000
+setopt appendhistory
+
+# 2. Autocompletion
+autoload -Uz compinit
+compinit
+
+# 3. Modern Aliases (The sleek stuff)
+alias ls='eza --icons -a --group-directories-first'
+alias ll='eza --icons -al --group-directories-first'
+alias tree='eza --icons --tree'
+alias cat='bat --style=plain'
+alias update='sudo pacman -Syu'
+
+# 4. Source Plugins (Arch Linux specific paths)
+source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+
+# 5. Initialize fuzzy finder (fzf)
+source <(fzf --zsh)
+
+# 6. Prompt: starship is initialised by cozytile.zsh (sourced at the end) with the themed config.
+
+export PATH="$HOME/.local/bin:$PATH"
+export NERO_KITTEN_PYTHON="$HOME/.local/share/nero/kittentts-venv/bin/python"
+
+# fnm
+FNM_PATH="$HOME/.local/share/fnm"
+if [ -d "$FNM_PATH" ]; then
+  export PATH="$FNM_PATH:$PATH"
+  eval "$(fnm env --shell zsh)"
+fi
+
+# Cozytile: prompt, aliases, cozytheme (installed by setup.sh)
+[ -f "$HOME/.config/cozytile/zsh/cozytile.zsh" ] && source "$HOME/.config/cozytile/zsh/cozytile.zsh"

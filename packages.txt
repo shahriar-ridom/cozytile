@@ -1,0 +1,40 @@
+# Packages for the full Cozytile desktop (Arch / CachyOS). `./setup.sh --packages` installs these.
+# [official]
+hyprland
+hypridle
+hyprlock
+xdg-desktop-portal-hyprland
+xdg-desktop-portal-gtk
+quickshell
+polkit-kde-agent
+kitty
+zsh
+zsh-syntax-highlighting
+zsh-autosuggestions
+starship
+fzf
+eza
+bat
+fastfetch
+cava
+btop
+cliphist
+wl-clipboard
+hyprshot
+playerctl
+brightnessctl
+networkmanager
+network-manager-applet
+pipewire
+wireplumber
+fcitx5
+qt6ct
+papirus-icon-theme
+adw-gtk-theme
+ttf-cascadia-code-nerd
+ttf-jetbrains-mono-nerd
+thunar
+python
+# [aur]
+awww
+matugen
