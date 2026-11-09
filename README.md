@@ -39,9 +39,10 @@ Then log out and back in, and choose **Hyprland** at the login screen. That's it
 
 | Needed | Why |
 |---|---|
-| **Hyprland** | the window manager Cozytile runs on |
+| **Hyprland** (a version with the Lua config, 0.55 or newer) | the window manager Cozytile runs on. The bundled config is `hyprland.lua` |
 | **Quickshell** (0.3 or newer, built with Hyprland, PipeWire, MPRIS, Notifications, SystemTray, UPower, Networking) | the bar, island, and launcher |
-| **CaskaydiaCove Nerd Font** | icons. Any other Nerd Font works. Set `Theme.font` in `config/Theme.qml` |
+| **CaskaydiaCove Nerd Font** | icons and monospace text. Any other Nerd Font works. Set `Theme.fontMono` in `config/Theme.qml` |
+| **SF Pro Text** (optional) | the UI text font. It isn't in the Arch repos, so Qt falls back to another sans font. Change `Theme.font` to any font you like |
 
 Optional, and each one unlocks a feature if present: `awww`, `swww`, `hyprpaper`, or `swaybg` (wallpapers),
 `matugen` (wallpaper theme), `hyprlock` (lock screen), `brightnessctl` (brightness), `playerctl` (media keys),
@@ -64,6 +65,9 @@ This installs the shell **and** the dotfiles (Hyprland config, terminal, prompt,
 Log out and back in to start Cozytile, or run `hyprctl reload && qs -c cozytile` to try it in your current session.
 
 `setup.sh` is safe to re-run. Any existing file it would replace is moved to `*.bak-<timestamp>` first.
+
+> The shell is **copied** to `~/.config/quickshell/cozytile`, so after editing QML files in the repo run `./install.sh` again
+> (or use `qs -p .` to run straight from the repo).
 
 ### Option 2: Shell only
 
@@ -90,22 +94,25 @@ qs -p .                      # runs the shell straight from this folder
 
 - The shell goes to `~/.config/quickshell/cozytile`.
 - Theme files render to `~/.config/cozytile/generated/`.
-- These are **symlinked to this repo**, so editing the repo updates your desktop:
+- These are **symlinked to this repo**, so editing them in the repo updates your desktop right away:
   `~/.config/hypr`, `kitty/kitty.conf`, `~/.zshrc`, and the GTK 3/4 `settings.ini`.
 - Qt (`qt6ct`) is rendered, and the GTK colour import is added.
 
-Edit the files in this repo, not in `~/.config`.
+Edit the dotfiles in this repo, not in `~/.config`.
 
-Machine-specific settings (monitor layout, GPU) go in `dotfiles/hypr/config/local.lua`. Copy it from
-`local.example.lua`. The file is git-ignored, so it never gets committed.
+Machine-specific settings (monitor layout, GPU) go in `dotfiles/hypr/config/local.lua`. `setup.sh` creates it from
+`local.example.lua` on the first run. The file is git-ignored, so it never gets committed.
 
 ## Undo and uninstall
 
 ```sh
-./rollback.sh                # restores the files the installer moved aside
-./uninstall.sh               # removes Cozytile (your settings are kept)
-./uninstall.sh --purge       # removes Cozytile and its saved settings
+./rollback.sh                # restores the previous shell install that install.sh moved aside
+./uninstall.sh               # removes the installed shell (your settings are kept)
+./uninstall.sh --purge       # also removes the saved settings
 ```
+
+The dotfile symlinks (`~/.config/hypr`, `kitty`, `~/.zshrc`, GTK) are not removed. To go back, restore the
+`*.bak-<timestamp>` copies next to them.
 
 ## Using Cozytile
 

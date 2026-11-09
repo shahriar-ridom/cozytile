@@ -40,7 +40,7 @@ case "$fonts" in *"CaskaydiaCove Nerd Font"*) ok "CaskaydiaCove Nerd Font";; *) 
 
 echo "== Notification daemon check"
 if command -v busctl >/dev/null && busctl --user list 2>/dev/null | grep -q "org.freedesktop.Notifications"; then
-  owner=$(busctl --user status org.freedesktop.Notifications 2>/dev/null | sed -n 's/^Comm=//p' | head -1)
+  owner=$(busctl --user status org.freedesktop.Notifications 2>/dev/null | sed -n 's/^Comm=//p' | head -1 || true)
   warn "org.freedesktop.Notifications is already owned by '${owner:-another daemon}'. Stop it before running Cozytile or its notifications will not appear."
 fi
 
