@@ -78,7 +78,8 @@ PanelWindow {
     property int collapsedW: Math.round(Math.min(win.maxW, Math.max(170, collapsedRow.implicitWidth + 44)))
     Behavior on collapsedW { NumberAnimation { duration: Theme.animNormal; easing.type: Easing.OutCubic } }
     property int expandedH: content.implicitHeight + 32
-    Behavior on expandedH { NumberAnimation { duration: Theme.animNormal; easing.type: Easing.OutCubic } }
+    // off while fully collapsed: the card loads/unloads then, and its size must not animate in
+    Behavior on expandedH { enabled: win.pc > 0; NumberAnimation { duration: Theme.animNormal; easing.type: Easing.OutCubic } }
 
     // SVG outline: S-curved sides (collapsed, like the bar's caps) morphing into a rounded card
     function outline(w, h, s, rt, rb) {
@@ -335,44 +336,53 @@ PanelWindow {
             id: content
             focus: true
             anchors { left: parent.left; right: parent.right; top: parent.top; margins: 16 }
-            implicitHeight: col.implicitHeight
+            implicitHeight: cardLoader.implicitHeight
             opacity: Math.max(0, (win.pc - 0.45) * 2)
             visible: opacity > 0.01
             enabled: win.expanded
             Keys.onEscapePressed: win.setExpanded(false)
 
-            Column {
-                id: col
+            // the card's contents exist only while expanded or animating; collapsed islands skip
+            // the media/timer/notification panels entirely
+            Loader {
+                id: cardLoader
                 width: parent.width
-                spacing: 14
-
-                // header: time + date + collapse
-                Item {
-                    width: parent.width; height: 34
+                active: win.expanded || win.pc > 0
+                sourceComponent: Component {
                     Column {
-                        anchors.verticalCenter: parent.verticalCenter
-                        Text { text: Qt.formatDateTime(clock.date, "hh:mm AP"); color: Theme.text
-                            font.family: Theme.font; font.pixelSize: Theme.fontTitle; font.bold: true }
-                        Text { text: Qt.formatDateTime(clock.date, "dddd, d MMMM"); color: Theme.textDim
-                            font.family: Theme.font; font.pixelSize: Theme.fontSmall }
+                        id: col
+                        width: parent.width
+                        spacing: 14
+
+                        // header: time + date + collapse
+                        Item {
+                            width: parent.width; height: 34
+                            Column {
+                                anchors.verticalCenter: parent.verticalCenter
+                                Text { text: Qt.formatDateTime(clock.date, "hh:mm AP"); color: Theme.text
+                                    font.family: Theme.font; font.pixelSize: Theme.fontTitle; font.bold: true }
+                                Text { text: Qt.formatDateTime(clock.date, "dddd, d MMMM"); color: Theme.textDim
+                                    font.family: Theme.font; font.pixelSize: Theme.fontSmall }
+                            }
+                            IconButton { anchors { right: parent.right; verticalCenter: parent.verticalCenter }
+                                glyph: ""; size: 28; glyphSize: 11; onClicked: win.setExpanded(false) }
+                        }
+                        Row {
+                            visible: PrivacyService.any
+                            spacing: 8
+                            Rectangle { width: 7; height: 7; radius: 4; color: Theme.warn; anchors.verticalCenter: parent.verticalCenter }
+                            Text { anchors.verticalCenter: parent.verticalCenter
+                                text: (PrivacyService.mic ? "Microphone · " + PrivacyService.micApps : "")
+                                      + (PrivacyService.mic && PrivacyService.video ? "   " : "")
+                                      + (PrivacyService.video ? "Video · " + PrivacyService.videoApps : "")
+                                color: Theme.warn; font.family: Theme.font; font.pixelSize: Theme.fontSmall + 1; elide: Text.ElideRight }
+                        }
+                        MediaPanel { width: parent.width; visible: MediaService.active; height: visible ? implicitHeight : 0 }
+                        TimerPanel { width: parent.width }
+                        NotificationPanel { width: parent.width; maxListHeight: MediaService.active ? 150 : 230 }
+                        QuickActions { onDone: win.setExpanded(false) }
                     }
-                    IconButton { anchors { right: parent.right; verticalCenter: parent.verticalCenter }
-                        glyph: ""; size: 28; glyphSize: 11; onClicked: win.setExpanded(false) }
                 }
-                Row {
-                    visible: PrivacyService.any
-                    spacing: 8
-                    Rectangle { width: 7; height: 7; radius: 4; color: Theme.warn; anchors.verticalCenter: parent.verticalCenter }
-                    Text { anchors.verticalCenter: parent.verticalCenter
-                        text: (PrivacyService.mic ? "Microphone · " + PrivacyService.micApps : "")
-                              + (PrivacyService.mic && PrivacyService.video ? "   " : "")
-                              + (PrivacyService.video ? "Video · " + PrivacyService.videoApps : "")
-                        color: Theme.warn; font.family: Theme.font; font.pixelSize: Theme.fontSmall + 1; elide: Text.ElideRight }
-                }
-                MediaPanel { width: parent.width; visible: MediaService.active; height: visible ? implicitHeight : 0 }
-                TimerPanel { width: parent.width }
-                NotificationPanel { width: parent.width; maxListHeight: MediaService.active ? 150 : 230 }
-                QuickActions { onDone: win.setExpanded(false) }
             }
         }
     }

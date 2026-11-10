@@ -131,10 +131,19 @@ ShellRoot {
     }
 
     // ---- overlays (live on the focused screen) ----
-    Launcher {}
-    AudioPicker {}
-    StatPopup {}
-    SettingsPanel {}
-    PowerMenu {}
-    WallpaperSelector {}
+    // Each overlay window exists only while open or fading out: the loader activates on open,
+    // the window holds it via `held` until its close animation ends, then it is destroyed.
+    // Hidden windows otherwise keep their whole item tree, scene graph and bindings alive.
+    LazyLoader { id: launcherL; property bool held: false; active: UiState.launcher || held
+        Launcher { id: launcherW; Component.onCompleted: launcherL.held = Qt.binding(() => launcherW.busy) } }
+    LazyLoader { id: audioL; property bool held: false; active: UiState.audioPicker || held
+        AudioPicker { id: audioW; Component.onCompleted: audioL.held = Qt.binding(() => audioW.visible) } }
+    LazyLoader { id: statL; property bool held: false; active: UiState.statPopup !== "" || held
+        StatPopup { id: statW; Component.onCompleted: statL.held = Qt.binding(() => statW.visible) } }
+    LazyLoader { id: settingsL; property bool held: false; active: UiState.settings || held
+        SettingsPanel { id: settingsW; Component.onCompleted: settingsL.held = Qt.binding(() => settingsW.visible) } }
+    LazyLoader { id: powerL; property bool held: false; active: UiState.power || held
+        PowerMenu { id: powerW; Component.onCompleted: powerL.held = Qt.binding(() => powerW.visible) } }
+    LazyLoader { id: wallpaperL; property bool held: false; active: UiState.wallpaper || held
+        WallpaperSelector { id: wallpaperW; Component.onCompleted: wallpaperL.held = Qt.binding(() => wallpaperW.visible) } }
 }

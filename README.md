@@ -62,7 +62,7 @@ This installs the shell **and** the dotfiles (Hyprland config, terminal, prompt,
 ./setup.sh                   # 3. install the shell and link the dotfiles
 ```
 
-Log out and back in to start Cozytile, or run `hyprctl reload && qs -c cozytile` to try it in your current session.
+Log out and back in to start Cozytile, or run `hyprctl reload && ~/.config/quickshell/cozytile/scripts/launch.sh` (starts `qs -c cozytile` with transparent huge pages off, ~80 MB less RAM) to try it in your current session.
 
 `setup.sh` is safe to re-run. Any existing file it would replace is moved to `*.bak-<timestamp>` first.
 

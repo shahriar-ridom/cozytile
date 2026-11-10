@@ -20,7 +20,9 @@ PanelWindow {
     WlrLayershell.keyboardFocus: UiState.settings ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
     MouseArea { anchors.fill: parent; acceptedButtons: Qt.AllButtons; onClicked: UiState.settings = false }
 
-    property int page: 0
+    // the panel is created on open; the page survives in UiState so it reopens where it was
+    property int page: UiState.settingsPageIndex
+    onPageChanged: UiState.settingsPageIndex = page
     readonly property var pages: [
         { name: "Appearance", icon: "", file: "PageAppearance.qml", group: "Shell" },
         { name: "Bar",        icon: "", file: "PageBar.qml",        group: "Shell" },
@@ -33,16 +35,21 @@ PanelWindow {
         { name: "About",      icon: "", file: "PageAbout.qml",      group: "" }
     ]
 
+    function takePage() {
+        const q = UiState.settingsPage.toLowerCase();
+        if (q === "") return;
+        const i = win.pages.findIndex(p => p.name.toLowerCase().startsWith(q) || p.file.toLowerCase() === "page" + q + ".qml");
+        if (i >= 0) win.page = i;
+        UiState.settingsPage = "";
+    }
+    // false at creation, then follows the open state, so the open animation still plays
+    // when the window is created already open (see the LazyLoader in shell.qml)
+    property bool shown: false
+    Component.onCompleted: { takePage(); shown = Qt.binding(() => UiState.settings); if (UiState.settings) HyprConfigService.refresh(); }
     Connections {
         target: UiState
         function onSettingsChanged() { if (UiState.settings) HyprConfigService.refresh(); else win.closePicker(); }
-        function onSettingsPageChanged() {
-            const q = UiState.settingsPage.toLowerCase();
-            if (q === "") return;
-            const i = win.pages.findIndex(p => p.name.toLowerCase().startsWith(q) || p.file.toLowerCase() === "page" + q + ".qml");
-            if (i >= 0) win.page = i;
-            UiState.settingsPage = "";
-        }
+        function onSettingsPageChanged() { win.takePage(); }
     }
 
     // ---- shared picker sheet (dropdown lists + app chooser) ----
@@ -88,8 +95,8 @@ PanelWindow {
         radius: Theme.radius + 4
         color: Theme.popupBg
         border.width: 1; border.color: Theme.border
-        opacity: UiState.settings ? 1 : 0
-        scale: UiState.settings ? 1 : 0.97
+        opacity: win.shown ? 1 : 0
+        scale: win.shown ? 1 : 0.97
         Behavior on opacity { NumberAnimation { duration: Theme.animNormal } }
         Behavior on scale { NumberAnimation { duration: Theme.animNormal; easing.type: Easing.OutCubic } }
         MouseArea { anchors.fill: parent; onClicked: card.forceActiveFocus() }

@@ -8,7 +8,8 @@ Item {
     id: root
     implicitWidth: 428
     implicitHeight: TimerService.active ? runCol.implicitHeight : idleRow.implicitHeight
-    property int pending: Settings.timerLast > 0 ? Settings.timerLast : 300
+    property int pending: TimerService.draft
+    onPendingChanged: TimerService.draft = pending
 
     // idle: presets + stepper + start
     Row {

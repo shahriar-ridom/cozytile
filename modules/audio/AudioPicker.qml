@@ -17,6 +17,10 @@ PanelWindow {
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: UiState.audioPicker ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
     MouseArea { anchors.fill: parent; onClicked: UiState.audioPicker = false }
+    // false at creation, then follows the open state, so the open animation still plays
+    // when the window is created already open (see the LazyLoader in shell.qml)
+    property bool shown: false
+    Component.onCompleted: shown = Qt.binding(() => UiState.audioPicker)
 
     Rectangle {
         id: card
@@ -27,7 +31,7 @@ PanelWindow {
         radius: Theme.radius + 2
         color: Theme.popupBg
         border.width: 1; border.color: Theme.border
-        opacity: UiState.audioPicker ? 1 : 0
+        opacity: win.shown ? 1 : 0
         Behavior on opacity { NumberAnimation { duration: Theme.animNormal } }
         MouseArea { anchors.fill: parent }
         Shadowed { target: card; z: -1 }

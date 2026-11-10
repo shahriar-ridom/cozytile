@@ -13,6 +13,7 @@ Singleton {
     property bool audioPicker: false
     property bool settings: false
     property string settingsPage: ""      // requested settings page (by name); the panel clears it
+    property int settingsPageIndex: 0     // last shown settings page (the panel is recreated on each open)
     // stat popup under the bar: "" | cpu | ram | temp, anchored at popupX (centre, screen px)
     property string statPopup: ""
     property real statPopupX: 0

@@ -17,6 +17,8 @@ Singleton {
     property bool alarming: false
     property real _end: 0
     property int _rings: 0
+    // duration picked in the island's timer panel; lives here because the panel is unloaded when the island collapses
+    property int draft: Settings.timerLast > 0 ? Settings.timerLast : 300
 
     function pad(n) { return String(n).padStart(2, "0"); }
     function format(sec) {

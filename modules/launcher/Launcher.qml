@@ -402,18 +402,26 @@ PanelWindow {
         printErrors: false
     }
     Timer { id: saveTimer; interval: 600; onTriggered: histFile.setText(JSON.stringify(win.hist)) }
-    Component.onCompleted: { try { const h = JSON.parse(histFile.text()); if (h && typeof h === "object") hist = h; } catch (e) {} }
+    // keeps the window (and its LazyLoader in shell.qml) alive until fade-out and history save are done
+    readonly property bool busy: visible || saveTimer.running
+    // false at creation, then follows the open state, so the open animation still plays
+    // when the window is created already open
+    property bool shown: false
+    Component.onCompleted: {
+        try { const h = JSON.parse(histFile.text()); if (h && typeof h === "object") hist = h; } catch (e) {}
+        shown = Qt.binding(() => UiState.launcher);
+        if (UiState.launcher) opened();
+    }
 
+    function opened() {
+        win.selKey = ""; win.armedId = ""; win.query = ""; win.calcAsync = null; win.fileHits = []; win.fileKey = "";
+        win.clipLines = []; win.clipLoaded = false;
+        input.text = UiState.launcherQuery; UiState.launcherQuery = ""; input.forceActiveFocus();
+        Hyprland.refreshToplevels();
+    }
     Connections {
         target: UiState
-        function onLauncherChanged() {
-            if (UiState.launcher) {
-                win.selKey = ""; win.armedId = ""; win.query = ""; win.calcAsync = null; win.fileHits = []; win.fileKey = "";
-                win.clipLines = []; win.clipLoaded = false;
-                input.text = UiState.launcherQuery; UiState.launcherQuery = ""; input.forceActiveFocus();
-                Hyprland.refreshToplevels();
-            }
-        }
+        function onLauncherChanged() { if (UiState.launcher) win.opened(); }
     }
 
     // ---- view ---------------------------------------------------------------
@@ -427,15 +435,19 @@ PanelWindow {
         height: 64 + 1 + listH + 18
         Behavior on height { NumberAnimation { duration: Theme.animNormal; easing.type: Easing.OutCubic } }
         anchors.horizontalCenter: parent.horizontalCenter
-        y: parent.height * 0.18 + (UiState.launcher ? 0 : -12)
+        y: parent.height * 0.18
+        // slide offset lives in a transform so the first layout of a freshly created window never animates
+        transform: Translate {
+            y: win.shown ? 0 : -12
+            Behavior on y { NumberAnimation { duration: Theme.animSlow; easing.type: Easing.OutCubic } }
+        }
         radius: Theme.radius + 6
         color: Theme.launcherBg
         border.width: 1; border.color: Theme.border
-        opacity: UiState.launcher ? 1 : 0
-        scale: UiState.launcher ? 1 : 0.97
+        opacity: win.shown ? 1 : 0
+        scale: win.shown ? 1 : 0.97
         transformOrigin: Item.Top
         Behavior on opacity { NumberAnimation { duration: Theme.animNormal; easing.type: Easing.OutCubic } }
-        Behavior on y { NumberAnimation { duration: Theme.animSlow; easing.type: Easing.OutCubic } }
         Behavior on scale { NumberAnimation { duration: Theme.animSlow; easing.type: Easing.OutCubic } }
         MouseArea { anchors.fill: parent }  // swallow clicks
 

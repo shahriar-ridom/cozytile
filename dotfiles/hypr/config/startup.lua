@@ -27,7 +27,10 @@ hl.on("hyprland.start", function()
 	-- UI
 	--------------------------------------------------------------------------
 
-	hl.exec_cmd("qs -c cozytile")
+	-- launch.sh starts qs with transparent huge pages off (~80 MB less RAM); plain qs if it is missing
+	local launch = cfg .. "/quickshell/cozytile/scripts/launch.sh"
+	local l = io.open(launch, "r")
+	if l then l:close(); hl.exec_cmd("sh " .. launch) else hl.exec_cmd("qs -c cozytile") end
 
 	--------------------------------------------------------------------------
 	-- Applications

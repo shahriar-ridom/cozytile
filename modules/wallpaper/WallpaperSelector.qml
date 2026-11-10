@@ -32,11 +32,14 @@ PanelWindow {
         function onFilesChanged() { if (UiState.wallpaper) grid.currentIndex = Math.max(0, WallpaperService.files.indexOf(win.currentPath())); }
     }
 
+    function opened() { WallpaperService.scan(); win.target = "*"; grid.currentIndex = Math.max(0, WallpaperService.files.indexOf(win.currentPath())); grid.forceActiveFocus(); }
+    // false at creation, then follows the open state, so the open animation still plays
+    // when the window is created already open (see the LazyLoader in shell.qml)
+    property bool shown: false
+    Component.onCompleted: { shown = Qt.binding(() => UiState.wallpaper); if (UiState.wallpaper) opened(); }
     Connections {
         target: UiState
-        function onWallpaperChanged() {
-            if (UiState.wallpaper) { WallpaperService.scan(); win.target = "*"; grid.currentIndex = Math.max(0, WallpaperService.files.indexOf(win.currentPath())); grid.forceActiveFocus(); }
-        }
+        function onWallpaperChanged() { if (UiState.wallpaper) win.opened(); }
     }
     MouseArea { anchors.fill: parent; onClicked: UiState.wallpaper = false }
 
@@ -47,7 +50,7 @@ PanelWindow {
         radius: Theme.radius + 4
         color: Theme.popupBg
         border.width: 1; border.color: Theme.border
-        opacity: UiState.wallpaper ? 1 : 0
+        opacity: win.shown ? 1 : 0
         Behavior on opacity { NumberAnimation { duration: Theme.animNormal; easing.type: Easing.OutCubic } }
         MouseArea { anchors.fill: parent }
         Shadowed { target: card; z: -1 }

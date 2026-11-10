@@ -21,6 +21,10 @@ PanelWindow {
     // keep content while fading out
     property string kind: "cpu"
     Connections { target: UiState; function onStatPopupChanged() { if (UiState.statPopup !== "") win.kind = UiState.statPopup; } }
+    // false at creation, then follows the open state, so the open animation still plays
+    // when the window is created already open (see the LazyLoader in shell.qml)
+    property bool shown: false
+    Component.onCompleted: { if (UiState.statPopup !== "") kind = UiState.statPopup; shown = Qt.binding(() => UiState.statPopup !== ""); }
 
     readonly property bool isCpu: kind === "cpu"
     readonly property bool isRam: kind === "ram"
@@ -39,7 +43,7 @@ PanelWindow {
         radius: Theme.radius + 2
         color: Theme.popupBg
         border.width: 1; border.color: Theme.border
-        opacity: UiState.statPopup !== "" ? 1 : 0
+        opacity: win.shown ? 1 : 0
         Behavior on opacity { NumberAnimation { duration: Theme.animNormal } }
         Behavior on height { NumberAnimation { duration: Theme.animFast; easing.type: Easing.OutCubic } }
         MouseArea { anchors.fill: parent }

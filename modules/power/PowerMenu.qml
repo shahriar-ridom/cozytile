@@ -45,12 +45,17 @@ PanelWindow {
     }
     function close() { pending = -1; UiState.power = false; }
 
+    // false at creation, then follows the open state, so the open animation still plays
+    // when the window is created already open (see the LazyLoader in shell.qml)
+    property bool shown: false
+    function opened() { win.index = 0; win.pending = -1; keys.forceActiveFocus(); }
+    Component.onCompleted: { shown = Qt.binding(() => UiState.power); if (UiState.power) opened(); }
     Connections {
         target: UiState
-        function onPowerChanged() { if (UiState.power) { win.index = 0; win.pending = -1; keys.forceActiveFocus(); } }
+        function onPowerChanged() { if (UiState.power) win.opened(); }
     }
 
-    Rectangle { anchors.fill: parent; color: Qt.rgba(0, 0, 0, 0.35); opacity: UiState.power ? 1 : 0
+    Rectangle { anchors.fill: parent; color: Qt.rgba(0, 0, 0, 0.35); opacity: win.shown ? 1 : 0
         Behavior on opacity { NumberAnimation { duration: Theme.animNormal } } }
     MouseArea { anchors.fill: parent; onClicked: win.close() }
 
@@ -72,8 +77,8 @@ PanelWindow {
         radius: Theme.radius + 6
         color: Theme.popupBg
         border.width: 1; border.color: Theme.border
-        opacity: UiState.power ? 1 : 0
-        scale: UiState.power ? 1 : 0.96
+        opacity: win.shown ? 1 : 0
+        scale: win.shown ? 1 : 0.96
         Behavior on opacity { NumberAnimation { duration: Theme.animNormal; easing.type: Easing.OutCubic } }
         Behavior on scale { NumberAnimation { duration: Theme.animNormal; easing.type: Easing.OutCubic } }
         MouseArea { anchors.fill: parent }
