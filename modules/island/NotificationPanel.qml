@@ -12,6 +12,7 @@ Item {
     implicitHeight: col.implicitHeight
     implicitWidth: 428
     readonly property var rows: NotificationService.history
+    property var replyKey: null            // card whose inline reply box is open
 
     function ago(t) {
         const s = Math.floor((Date.now() - t.getTime()) / 1000);
@@ -45,7 +46,8 @@ Item {
                 spacing: 4
                 IconButton { glyph: NotificationService.dnd ? "" : ""; size: 24; glyphSize: 11; active: NotificationService.dnd
                     onClicked: NotificationService.toggleDnd() }
-                IconButton { label: "Clear"; glyph: ""; size: 24; visible: NotificationService.count > 0; onClicked: NotificationService.clearAll() }
+                IconButton { label: "Mark all read"; glyph: "\uf00c"; size: 24; visible: NotificationService.count > 0
+                    onClicked: { root.replyKey = null; NotificationService.markAllRead(""); } }
             }
         }
 
@@ -57,10 +59,15 @@ Item {
             clip: true
             spacing: 8
             boundsBehavior: Flickable.StopAtBounds
-            model: root.rows
+            model: ScriptModel { values: root.rows; objectProp: "key" }
             delegate: Rectangle {
                 id: card
                 required property var modelData
+                required property int index
+                onReplyingChanged: if (replying) Qt.callLater(() => list.positionViewAtIndex(index, ListView.Contain))
+                readonly property bool live: modelData.n !== null
+                readonly property bool replying: live && root.replyKey === modelData.key
+                readonly property var extra: modelData.actions.filter(a => a.identifier !== "default" && a.identifier !== modelData.markRead).slice(0, 2)
                 width: list.width
                 height: rowc.implicitHeight + 16
                 radius: Theme.radius
@@ -100,16 +107,47 @@ Item {
                             Rectangle { height: parent.height; radius: 2; color: Theme.accent; width: parent.width * Math.max(0, card.modelData.progress)
                                 Behavior on width { NumberAnimation { duration: Theme.animNormal } } }
                         }
-                        Row {
+                        Flow {
+                            width: parent.width
+                            topPadding: 4
                             spacing: 6
-                            visible: card.modelData.n !== null && card.modelData.actions.length > 0
+                            visible: card.live && !card.replying && (card.modelData.canReply || card.modelData.markRead !== "" || card.extra.length > 0)
+                            Chip {
+                                visible: card.modelData.canReply
+                                glyph: "\uf112"; label: "Reply"; primary: true
+                                onClicked: root.replyKey = card.modelData.key
+                            }
                             Repeater {
-                                model: card.modelData.actions.filter(a => a.identifier !== "default").slice(0, 3)
-                                delegate: IconButton {
+                                model: card.extra
+                                delegate: Chip {
                                     required property var modelData
-                                    label: modelData.text; size: 22
+                                    label: modelData.text
                                     onClicked: NotificationService.invoke(card.modelData.key, modelData.identifier)
                                 }
+                            }
+                            Chip {
+                                visible: card.modelData.markRead !== ""
+                                glyph: "\uf00c"; label: "Mark as read"
+                                onClicked: NotificationService.markRead(card.modelData.key)
+                            }
+                        }
+                        Item { width: 1; height: 4; visible: card.replying }
+                        ReplyField {
+                            id: replyBox
+                            width: parent.width
+                            visible: card.replying
+                            placeholder: card.modelData.replyPlaceholder || ("Reply to " + (card.modelData.summary || card.modelData.appName) + "…")
+                            onVisibleChanged: { if (visible) Qt.callLater(focusInput); else text = ""; }
+                            // the list model is rebuilt on every history change: refocus a recreated box
+                            Component.onCompleted: if (visible) Qt.callLater(focusInput)
+                            onCancelled: root.replyKey = null
+                            // replying removes this card: finish UI work first, send last
+                            onSent: t => {
+                                const key = card.modelData.key;
+                                root.replyKey = null;
+                                const ok = NotificationService.canReply(key);
+                                ActivityService.toast("reply", ok ? "\uf1d8" : "\uf071", ok ? "Reply sent" : "Reply failed · notification closed", ok ? "good" : "bad");
+                                NotificationService.reply(key, t);
                             }
                         }
                     }

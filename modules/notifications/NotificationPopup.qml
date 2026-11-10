@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
+import Quickshell.Hyprland
 import "../../config"
 import "../../services"
 import "../../components"
@@ -19,7 +20,17 @@ PanelWindow {
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.namespace: "cozytile-notifications"
     WlrLayershell.layer: WlrLayer.Overlay
+    // toasts never take the keyboard, except while a reply is being typed
+    WlrLayershell.keyboardFocus: replyKey >= 0 ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
     mask: Region { item: stack }
+
+    property int replyKey: -1
+    onItemsChanged: if (replyKey >= 0 && !items.some(e => e.key === replyKey)) replyKey = -1
+    // armed after the keyboard-focus switch lands, or Hyprland clears the grab immediately
+    property bool replyGrab: false
+    onReplyKeyChanged: { replyGrab = false; if (replyKey >= 0) grabArm.restart(); }
+    Timer { id: grabArm; interval: 150; onTriggered: win.replyGrab = win.replyKey >= 0 }
+    HyprlandFocusGrab { windows: [win]; active: win.replyGrab; onCleared: win.replyKey = -1 }
 
     Column {
         id: stack
@@ -27,7 +38,8 @@ PanelWindow {
         width: 360
         spacing: 10
         Repeater {
-            model: win.items
+            // keyed: a card survives unrelated history changes (keeps its timer and a half-typed reply)
+            model: ScriptModel { values: win.items; objectProp: "key" }
             delegate: NotificationItem {
                 id: card
                 required property var modelData
@@ -35,15 +47,18 @@ PanelWindow {
                 popup: true
                 width: 360
                 onCloseRequested: NotificationService.dismissPopup(modelData.key)
+                replying: win.replyKey === modelData.key
+                onReplyRequested: win.replyKey = modelData.key
+                onReplyClosed: win.replyKey = -1
+                onClicked: if (!replying) NotificationService.dismissPopup(entry.key)
 
                 // auto-expire popup (not critical); hover pauses
                 Timer {
                     interval: card.entry.urgency === 2 ? 0 : 6000
-                    running: interval > 0 && !hover.hovered
+                    running: interval > 0 && !hover.hovered && !card.replying
                     onTriggered: NotificationService.dismissPopup(card.entry.key)
                 }
                 HoverHandler { id: hover }
-                TapHandler { onTapped: NotificationService.dismissPopup(card.entry.key) }
 
                 opacity: 0
                 Component.onCompleted: opacity = 1

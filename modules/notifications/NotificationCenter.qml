@@ -65,13 +65,17 @@ PanelWindow {
             anchors { top: head.bottom; bottom: parent.bottom; left: parent.left; right: parent.right; margins: 16; topMargin: 12 }
             clip: true
             spacing: 10
-            model: NotificationService.history
+            model: ScriptModel { values: NotificationService.history; objectProp: "key" }
             boundsBehavior: Flickable.StopAtBounds
+            property int replyKey: -1
             delegate: NotificationItem {
                 required property var modelData
                 width: ListView.view.width
                 entry: modelData
                 onCloseRequested: NotificationService.remove(modelData.key)
+                replying: ListView.view.replyKey === modelData.key
+                onReplyRequested: ListView.view.replyKey = modelData.key
+                onReplyClosed: ListView.view.replyKey = -1
             }
             Text {
                 visible: NotificationService.count === 0

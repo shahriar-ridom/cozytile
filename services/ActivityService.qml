@@ -40,6 +40,15 @@ Singleton {
     }
     function dismiss(key) { if (items.some(i => i.key === key)) { items = items.filter(i => i.key !== key); _schedule(); } }
 
+    // keep an item on screen while the user interacts with it (hover, typing a reply); release gives it a short tail
+    function hold(key, on) {
+        const it = items.find(i => i.key === key);
+        if (!it || it.sticky === on) return;
+        const now = Date.now();
+        items = items.map(i => i.key === key ? Object.assign({}, i, { sticky: on, expires: on ? 0 : now + 2500 }) : i);
+        _schedule();
+    }
+
     function toast(key, glyph, text, tone) { post(key, "toast", { glyph: glyph, text: text, tone: tone || "accent" }); }
 
     function level(kind, value, muted) {
@@ -76,6 +85,9 @@ Singleton {
         target: NotificationService
         function onArrived(entry) {
             if (!entry.popup) return;
+            // user is busy with the current banner (hovering / replying): the new one waits in history
+            const cur = root.items.find(i => i.key === "notif");
+            if (cur && cur.sticky && cur.payload && cur.payload.key !== entry.key) return;
             root.post("notif", "notification", { glyph: "", text: entry.summary || entry.appName,
                                                   priority: root.pNotif, ms: 5500, payload: entry });
         }
@@ -84,7 +96,7 @@ Singleton {
             const cur = root.items.find(i => i.key === "notif");
             if (cur && cur.payload && cur.payload.key === entry.key) {
                 root.post("notif", "notification", { glyph: "\uf0f3", text: entry.summary || entry.appName,
-                                                      priority: root.pNotif, ms: 4000, payload: entry });
+                                                      priority: root.pNotif, ms: 4000, sticky: cur.sticky, payload: entry });
             }
         }
         function onDndChanged() {

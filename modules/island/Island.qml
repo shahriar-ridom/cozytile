@@ -24,8 +24,9 @@ PanelWindow {
     implicitHeight: 700
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.namespace: "cozytile-island"
-    WlrLayershell.layer: expanded ? WlrLayer.Overlay : WlrLayer.Top
-    WlrLayershell.keyboardFocus: expanded ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+    WlrLayershell.layer: expanded || replying ? WlrLayer.Overlay : WlrLayer.Top
+    // typing a reply in the peek needs the keyboard even though the island is collapsed
+    WlrLayershell.keyboardFocus: replying ? WlrKeyboardFocus.Exclusive : expanded ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
     mask: Region { item: body }
 
     // ---- state ---------------------------------------------------------
@@ -45,12 +46,27 @@ PanelWindow {
     readonly property bool peeking: mode === "banner"
     property var peekEntry: null                       // last banner payload, kept so the card can fade out intact
     onActChanged: if (act && act.kind === "notification" && act.payload) peekEntry = act.payload
+    onPeekingChanged: if (!peeking) replying = false
+    // `var` re-assignments fire even for the same object (hold/progress updates re-post the banner):
+    // only a different notification may cancel a reply in progress
+    property int peekKey: peekEntry ? peekEntry.key : -1
+    onPeekKeyChanged: replying = false
+
+    // inline reply straight from the peek; the banner is held on screen while hovered or replying
+    property bool replying: false
+    property bool replyGrab: false
+    Timer { id: replyGrabArm; interval: 150; onTriggered: win.replyGrab = win.replying }
+    property bool peekHovered: false
+    function holdPeek() { ActivityService.hold("notif", peekHovered || replying); }
+    onReplyingChanged: { replyGrab = false; if (replying) replyGrabArm.restart(); holdPeek(); if (replying) Qt.callLater(() => peekReply.focusInput()); }
+    onPeekHoveredChanged: holdPeek()
     property real peek: peeking ? 1 : 0
     Behavior on peek { NumberAnimation { duration: Theme.animSlow + 60; easing.type: Easing.OutBack; easing.overshoot: 0.8 } }
     readonly property real pk: Math.max(0, Math.min(1, peek))
     readonly property real shapeP: Math.max(pc, pk)
     readonly property int peekW: Math.min(Theme.islandExpandedWidth - 40, Math.max(300, maxW + 40))
-    readonly property int peekH: Math.round(peekCard.implicitHeight + 24)
+    property int peekH: Math.round(peekCard.implicitHeight + 24)
+    Behavior on peekH { enabled: win.pk > 0.99; NumberAnimation { duration: Theme.animNormal; easing.type: Easing.OutCubic } }
 
     // alarm: gentle pulse while it rings (animation only runs then)
     property real pulse: 0
@@ -64,8 +80,9 @@ PanelWindow {
 
     HyprlandFocusGrab {
         windows: [win]
-        active: win.expanded
-        onCleared: win.setExpanded(false)
+        // reply: arm only after the layer has switched to exclusive keyboard focus, or Hyprland clears it at once
+        active: win.expanded || win.replyGrab
+        onCleared: { win.replying = false; win.setExpanded(false); }
     }
 
     SystemClock { id: clock; precision: SystemClock.Minutes }
@@ -272,7 +289,7 @@ PanelWindow {
         Item {
             id: peekCard
             anchors { top: parent.top; left: parent.left; right: parent.right; topMargin: 12; leftMargin: 18; rightMargin: 18 }
-            implicitHeight: Math.max(40, peekText.implicitHeight)
+            implicitHeight: peekCol.implicitHeight
             opacity: Math.max(0, (win.pk - 0.5) * 2) * (1 - win.pc * 3)
             visible: opacity > 0.01
             readonly property var e: win.peekEntry
@@ -287,46 +304,113 @@ PanelWindow {
             readonly property string iconSrc: !e ? "" : e.image ? e.image
                 : e.appIcon ? (e.appIcon.startsWith("/") || e.appIcon.startsWith("file:") ? e.appIcon : Quickshell.iconPath(e.appIcon, true)) : ""
 
-            Rectangle {
-                id: peekIcon
-                width: 40; height: 40; radius: 12; color: Theme.surfaceHigh; clip: true
-                Image { id: peekImg; anchors.fill: parent; source: peekCard.iconSrc; fillMode: Image.PreserveAspectCrop
-                    asynchronous: true; sourceSize.width: 96; visible: status === Image.Ready }
-                Glyph { anchors.centerIn: parent; visible: peekImg.status !== Image.Ready; text: "\uf0f3"; size: 16; color: Theme.accent }
-            }
-            Column {
-                id: peekText
-                anchors { left: peekIcon.right; leftMargin: 12; right: parent.right }
-                spacing: 2
-                Row {
-                    width: parent.width; spacing: 6
-                    Text { text: peekCard.e ? peekCard.e.appName : ""; color: Theme.textDim
-                        width: Math.min(implicitWidth, parent.width - 50)
-                        elide: Text.ElideRight; font.family: Theme.font; font.pixelSize: Theme.fontSmall }
-                    Text { text: peekCard.ago; color: Theme.textMuted; font.family: Theme.font; font.pixelSize: Theme.fontSmall }
-                }
-                Text { width: parent.width; text: peekCard.e ? peekCard.e.summary : ""; color: Theme.barText
-                    elide: Text.ElideRight; font.family: Theme.font; font.pixelSize: Theme.fontSize + 1; font.bold: true }
-                Text { width: parent.width; visible: text !== ""; text: peekCard.e ? peekCard.e.body : ""; color: Theme.barTextDim
-                    maximumLineCount: 2; wrapMode: Text.Wrap; elide: Text.ElideRight
-                    font.family: Theme.font; font.pixelSize: Theme.fontSmall + 1 }
-                Rectangle {
-                    visible: peekCard.e && peekCard.e.progress >= 0
-                    width: parent.width; height: 5; radius: 3; color: Theme.osdTrack
-                    Rectangle { height: parent.height; radius: 3; color: Theme.accent
-                        width: parent.width * (peekCard.e && peekCard.e.progress >= 0 ? peekCard.e.progress : 0)
-                        Behavior on width { NumberAnimation { duration: Theme.animNormal } } }
-                }
-            }
+            readonly property bool live: !!e && e.n !== null
+            readonly property var extra: !live ? [] : e.actions.filter(a => a.identifier !== "default" && a.identifier !== e.markRead).slice(0, 2)
+            readonly property int fromApp: e ? NotificationService.history.filter(x => x.appName === e.appName).length : 0
+            readonly property bool hasStrip: (live && (e.canReply || extra.length > 0)) || fromApp > 0
+
+            HoverHandler { onHoveredChanged: win.peekHovered = hovered }
+
+            // under the buttons: click opens the island, middle/right dismisses
             MouseArea {
                 anchors.fill: parent; anchors.margins: -12
                 cursorShape: Qt.PointingHandCursor
                 acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
                 onClicked: m => {
+                    if (win.replying) return;
                     if (m.button === Qt.MiddleButton || m.button === Qt.RightButton) {
                         if (peekCard.e) NotificationService.dismissPopup(peekCard.e.key);
                         ActivityService.dismiss("notif");
                     } else win.setExpanded(true);
+                }
+            }
+
+            Column {
+                id: peekCol
+                width: parent.width
+                spacing: 10
+
+                Item {
+                    width: parent.width
+                    height: Math.max(40, peekText.implicitHeight)
+                    Rectangle {
+                        id: peekIcon
+                        width: 40; height: 40; radius: 12; color: Theme.surfaceHigh; clip: true
+                        Image { id: peekImg; anchors.fill: parent; source: peekCard.iconSrc; fillMode: Image.PreserveAspectCrop
+                            asynchronous: true; sourceSize.width: 96; visible: status === Image.Ready }
+                        Glyph { anchors.centerIn: parent; visible: peekImg.status !== Image.Ready; text: "\uf0f3"; size: 16; color: Theme.accent }
+                    }
+                    Column {
+                        id: peekText
+                        anchors { left: peekIcon.right; leftMargin: 12; right: parent.right }
+                        spacing: 2
+                        Row {
+                            width: parent.width; spacing: 6
+                            Text { text: peekCard.e ? peekCard.e.appName : ""; color: Theme.textDim
+                                width: Math.min(implicitWidth, parent.width - 50)
+                                elide: Text.ElideRight; font.family: Theme.font; font.pixelSize: Theme.fontSmall }
+                            Text { text: peekCard.ago; color: Theme.textMuted; font.family: Theme.font; font.pixelSize: Theme.fontSmall }
+                        }
+                        Text { width: parent.width; text: peekCard.e ? peekCard.e.summary : ""; color: Theme.barText
+                            elide: Text.ElideRight; font.family: Theme.font; font.pixelSize: Theme.fontSize + 1; font.bold: true }
+                        Text { width: parent.width; visible: text !== ""; text: peekCard.e ? peekCard.e.body : ""; color: Theme.barTextDim
+                            maximumLineCount: win.replying ? 4 : 2; wrapMode: Text.Wrap; elide: Text.ElideRight
+                            font.family: Theme.font; font.pixelSize: Theme.fontSmall + 1 }
+                        Rectangle {
+                            visible: peekCard.e && peekCard.e.progress >= 0
+                            width: parent.width; height: 5; radius: 3; color: Theme.osdTrack
+                            Rectangle { height: parent.height; radius: 3; color: Theme.accent
+                                width: parent.width * (peekCard.e && peekCard.e.progress >= 0 ? peekCard.e.progress : 0)
+                                Behavior on width { NumberAnimation { duration: Theme.animNormal } } }
+                        }
+                    }
+                }
+
+                // actions: reply, the app's own buttons, mark (all) read
+                Flow {
+                    width: parent.width
+                    leftPadding: 52
+                    spacing: 6
+                    visible: !win.replying && peekCard.hasStrip
+                    Chip {
+                        visible: peekCard.live && peekCard.e.canReply
+                        glyph: "\uf112"; label: "Reply"; primary: true
+                        onClicked: win.replying = true
+                    }
+                    Repeater {
+                        model: peekCard.extra
+                        delegate: Chip {
+                            required property var modelData
+                            label: modelData.text
+                            onClicked: { NotificationService.invoke(peekCard.e.key, modelData.identifier); ActivityService.dismiss("notif"); }
+                        }
+                    }
+                    Chip {
+                        visible: peekCard.fromApp > 0
+                        glyph: "\uf00c"
+                        label: peekCard.fromApp > 1 ? "Mark all read · " + peekCard.fromApp : "Mark as read"
+                        onClicked: {
+                            if (peekCard.fromApp > 1) NotificationService.markAllRead(peekCard.e.appName);
+                            else NotificationService.markRead(peekCard.e.key);
+                            ActivityService.dismiss("notif");
+                        }
+                    }
+                }
+
+                ReplyField {
+                    id: peekReply
+                    width: parent.width
+                    visible: win.replying
+                    placeholder: peekCard.e && peekCard.e.replyPlaceholder ? peekCard.e.replyPlaceholder
+                                 : "Reply to " + (peekCard.e ? peekCard.e.summary || peekCard.e.appName : "") + "…"
+                    onVisibleChanged: if (!visible) text = ""
+                    onCancelled: win.replying = false
+                    onSent: t => {
+                        const ok = NotificationService.reply(peekCard.e.key, t);
+                        win.replying = false;
+                        ActivityService.dismiss("notif");
+                        ActivityService.toast("reply", ok ? "\uf1d8" : "\uf071", ok ? "Reply sent" : "Reply failed · notification closed", ok ? "good" : "bad");
+                    }
                 }
             }
         }

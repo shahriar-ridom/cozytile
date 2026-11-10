@@ -10,7 +10,14 @@ Rectangle {
     id: root
     required property var entry
     property bool popup: false
+    property bool replying: false          // owner keeps this (one open reply box per window)
     signal closeRequested()
+    signal clicked()                       // click on the card body (not a button)
+    signal replyRequested()
+    signal replyClosed()
+
+    readonly property bool live: entry.n !== null
+    readonly property var extra: entry.actions.filter(a => a.identifier !== "default" && a.identifier !== entry.markRead)
 
     readonly property bool critical: entry.urgency === 2   // NotificationUrgency.Critical
     implicitHeight: col0.implicitHeight + 24
@@ -29,6 +36,9 @@ Rectangle {
     // re-evaluate relative time each minute without a per-item timer storm
     property int tick: 0
     Timer { interval: 60000; running: !root.popup; repeat: true; onTriggered: root.tick++ }
+
+    // under every button: plain clicks on the card
+    MouseArea { anchors.fill: parent; onClicked: root.clicked() }
 
     Row {
         id: col0
@@ -98,22 +108,46 @@ Rectangle {
                 color: Theme.textDim
                 font.family: Theme.font; font.pixelSize: Theme.fontSize
             }
-            Row {
+            Item { width: 1; height: 3; visible: actionFlow.visible || reply.visible }
+            Flow {
+                id: actionFlow
+                width: parent.width
                 spacing: 6
-                visible: root.entry.actions.length > 0 && root.entry.n !== null
+                visible: root.live && !root.replying && (root.entry.canReply || root.entry.markRead !== "" || root.extra.length > 0)
+                Chip {
+                    visible: root.entry.canReply
+                    glyph: "\uf112"; label: "Reply"; primary: true
+                    onClicked: root.replyRequested()
+                }
                 Repeater {
-                    model: root.entry.actions.filter(a => a.identifier !== "default")
-                    delegate: Rectangle {
+                    model: root.extra.slice(0, 3)
+                    delegate: Chip {
                         required property var modelData
-                        height: 24; width: t.implicitWidth + 18; radius: 12
-                        color: am.containsMouse ? Theme.accent : Theme.surfaceHigh
-                        Behavior on color { ColorAnimation { duration: Theme.animFast } }
-                        Text { id: t; anchors.centerIn: parent; text: modelData.text
-                            color: am.containsMouse ? Theme.barCap : Theme.text
-                            font.family: Theme.font; font.pixelSize: Theme.fontSmall + 1; font.bold: true }
-                        MouseArea { id: am; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
-                            onClicked: NotificationService.invoke(root.entry.key, modelData.identifier) }
+                        label: modelData.text
+                        onClicked: NotificationService.invoke(root.entry.key, modelData.identifier)
                     }
+                }
+                Chip {
+                    visible: root.entry.markRead !== ""
+                    glyph: "\uf00c"; label: "Mark as read"
+                    onClicked: NotificationService.markRead(root.entry.key)
+                }
+            }
+            ReplyField {
+                id: reply
+                width: parent.width
+                visible: root.replying && root.live
+                placeholder: root.entry.replyPlaceholder || ("Reply to " + (root.entry.summary || root.entry.appName) + "…")
+                onVisibleChanged: { if (visible) Qt.callLater(focusInput); else text = ""; }
+                Component.onCompleted: if (visible) Qt.callLater(focusInput)
+                onCancelled: root.replyClosed()
+                // replying removes this card: finish UI work first, send last
+                onSent: t => {
+                    const key = root.entry.key;
+                    root.replyClosed();
+                    const ok = NotificationService.canReply(key);
+                    ActivityService.toast("reply", ok ? "\uf1d8" : "\uf071", ok ? "Reply sent" : "Reply failed · notification closed", ok ? "good" : "bad");
+                    NotificationService.reply(key, t);
                 }
             }
         }

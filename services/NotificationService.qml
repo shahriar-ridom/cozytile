@@ -8,7 +8,8 @@ import "../config"
 Singleton {
     id: root
 
-    // newest first; each: { key, n (live Notification or null), appName, appIcon, image, summary, body, time, urgency, actions, popup }
+    // newest first; each: { key, n (live Notification or null), appName, appIcon, image, summary, body, time, urgency,
+    //   progress, actions, canReply, replyPlaceholder, markRead (action id or ""), popup }
     property var history: []
     readonly property var popups: history.filter(e => e.popup)
     readonly property int count: history.length
@@ -18,6 +19,13 @@ Singleton {
     signal updated(var entry)     // same notification replaced/changed (e.g. download progress)
 
     function _set(list) { history = list; }
+
+    // chat apps (Telegram, WhatsApp wrappers, ...) ship a "Mark as read" action; ids vary per app
+    function _markReadId(n) {
+        for (const a of n.actions)
+            if (/mark[-_ ]?(as[-_ ]?)?read/i.test(a.identifier) || /mark.*read/i.test(a.text)) return a.identifier;
+        return "";
+    }
 
     // progress: freedesktop "value" hint (0..100), or -1 when the app reports none
     function _entry(n, popup) {
@@ -33,7 +41,10 @@ Singleton {
             time: new Date(),
             urgency: n.urgency,
             progress: isNaN(v) ? -1 : Math.max(-1, Math.min(100, v)) / 100,
-            actions: n.actions.map(a => ({ identifier: a.identifier, text: a.text })),
+            actions: n.actions.filter(a => a.identifier !== "inline-reply").map(a => ({ identifier: a.identifier, text: a.text })),
+            canReply: n.hasInlineReply,
+            replyPlaceholder: n.inlineReplyPlaceholder || "",
+            markRead: _markReadId(n),
             popup: popup
         };
     }
@@ -56,6 +67,35 @@ Singleton {
         for (const a of e.n.actions) if (a.identifier === identifier) { a.invoke(); break; }
         dismissPopup(key);
     }
+    // inline reply (freedesktop "inline-reply" capability); a replied conversation counts as read
+    function canReply(key) { const e = history.find(x => x.key === key); return !!(e && e.n && e.canReply); }
+    function reply(key, text) {
+        const e = history.find(x => x.key === key);
+        if (!e || !e.n || !e.canReply || text.trim() === "") return false;
+        e.n.sendInlineReply(text);      // quickshell closes the notification itself after replying
+        _set(history.filter(x => x.key !== key));
+        return true;
+    }
+    // fire the app's own "mark as read" action when it has one, then drop the entry
+    function _markRead(e) {
+        if (!e.n) return;
+        const act = e.markRead ? e.n.actions.find(a => a.identifier === e.markRead) : null;
+        if (act) { act.invoke(); if (e.n && e.n.resident) e.n.dismiss(); }
+        else e.n.dismiss();
+    }
+    function markRead(key) {
+        const e = history.find(x => x.key === key);
+        if (!e) return;
+        _markRead(e);
+        _set(history.filter(x => x.key !== key));
+    }
+    // appName empty = every notification
+    function markAllRead(appName) {
+        const hit = e => !appName || e.appName === appName;
+        for (const e of history) if (hit(e)) _markRead(e);
+        _set(history.filter(e => !hit(e)));
+    }
+    function countFor(appName) { return history.filter(e => e.appName === appName).length; }
     function toggleDnd() { Settings.dnd = !Settings.dnd; }
 
     NotificationServer {
@@ -66,6 +106,7 @@ Singleton {
         actionsSupported: true
         imageSupported: true
         persistenceSupported: true
+        inlineReplySupported: true      // without this, Telegram & co. never send a reply action
 
         onNotification: n => {
             n.tracked = true;
