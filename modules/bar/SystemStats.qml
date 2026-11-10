@@ -18,16 +18,19 @@ Row {
 
     StatItem {
         icon: ""
+        onClicked: UiState.toggleStat("cpu", Theme.barMarginSide + centerX())
         value: Math.round(SystemMonitor.cpu * 100) + "%"
         iconColor: SystemMonitor.cpu > 0.85 ? Theme.bad : Theme.barTextDim
     }
     StatItem {
         icon: ""
+        onClicked: UiState.toggleStat("ram", Theme.barMarginSide + centerX())
         value: (SystemMonitor.memUsed / 1073741824).toFixed(1) + "G"
         iconColor: SystemMonitor.mem > 0.9 ? Theme.bad : Theme.barTextDim
     }
     StatItem {
-        visible: root.showTemp && SystemMonitor.hasTemp
+        visible: root.showTemp && Settings.showTemp && SystemMonitor.hasTemp
+        onClicked: UiState.toggleStat("temp", Theme.barMarginSide + centerX())
         width: visible ? implicitWidth : 0
         icon: ""
         value: Math.round(SystemMonitor.tempC) + "°"

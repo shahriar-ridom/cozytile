@@ -12,6 +12,9 @@ Item {
     signal clicked(var mouse)
     signal wheel(var wheel)
 
+    // centre x of this item in the bar window (the popup is anchored to it)
+    function centerX() { return root.mapToItem(null, root.width / 2, 0).x; }
+
     implicitWidth: row.implicitWidth + 12
     implicitHeight: Theme.barHeight
 
@@ -19,6 +22,7 @@ Item {
         anchors.fill: parent
         anchors.topMargin: 3; anchors.bottomMargin: 3
         radius: Theme.radiusSmall + 2
+        acceptedButtons: Qt.LeftButton
         onClicked: m => root.clicked(m)
         onWheel: w => root.wheel(w)
     }

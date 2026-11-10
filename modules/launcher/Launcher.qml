@@ -30,6 +30,9 @@ PanelWindow {
     readonly property int maxListH: 396
     property string query: ""
     property int index: 0
+    // last real pointer position; hover ignored unless pointer truly moved (list scrolling/filtering under a still mouse must not steal selection)
+    property real lastMouseX: -1
+    property real lastMouseY: -1
     property string selKey: ""
     property string armedId: ""
     property var hist: ({})
@@ -526,7 +529,11 @@ PanelWindow {
                 item: modelData
                 selected: index === win.index
                 onActivated: win.activate(modelData, false)
-                onHoveredIn: if (modelData.selectable) win.index = index
+                onHoveredIn: (sx, sy) => {
+                    const moved = win.lastMouseX >= 0 && (Math.abs(sx - win.lastMouseX) > 1 || Math.abs(sy - win.lastMouseY) > 1)
+                    win.lastMouseX = sx; win.lastMouseY = sy
+                    if (moved && modelData.selectable) win.index = index
+                }
             }
             Text {
                 visible: win.rows.length === 0

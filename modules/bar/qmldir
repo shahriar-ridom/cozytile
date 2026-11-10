@@ -8,3 +8,4 @@ StatItem 1.0 StatItem.qml
 NetworkItem 1.0 NetworkItem.qml
 BatteryItem 1.0 BatteryItem.qml
 SystemTray 1.0 SystemTray.qml
+StatPopup 1.0 StatPopup.qml

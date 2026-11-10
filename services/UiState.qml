@@ -11,6 +11,10 @@ Singleton {
     property bool power: false
     property bool wallpaper: false
     property bool audioPicker: false
+    property bool settings: false
+    // stat popup under the bar: "" | cpu | ram | temp, anchored at popupX (centre, screen px)
+    property string statPopup: ""
+    property real statPopupX: 0
     property string islandOpenOn: ""      // name of the screen whose island is expanded
 
     readonly property var focusedScreen: {
@@ -28,7 +32,12 @@ Singleton {
         closeAll();
         islandOpenOn = was ? "" : n;
     }
-    function closeAll() { islandOpenOn = ""; launcher = false; power = false; wallpaper = false; audioPicker = false; }
+    function closeAll() { islandOpenOn = ""; launcher = false; power = false; wallpaper = false; audioPicker = false; settings = false; statPopup = ""; }
+    function toggleStat(kind, x) {
+        const was = statPopup === kind;
+        closeAll();
+        if (!was) { statPopupX = x; statPopup = kind; }
+    }
     // Opening one overlay closes the others.
     function toggle(which) {
         const was = root[which];

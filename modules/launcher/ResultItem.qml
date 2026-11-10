@@ -10,7 +10,7 @@ Item {
     required property var item
     property bool selected: false
     signal activated()
-    signal hoveredIn()
+    signal hoveredIn(real sceneX, real sceneY)
 
     readonly property bool header: item.kind === "header"
     readonly property bool calc: item.kind === "calc"
@@ -108,7 +108,7 @@ Item {
         anchors.fill: parent
         enabled: !root.header
         hoverEnabled: true
-        onPositionChanged: root.hoveredIn()
+        onPositionChanged: (m) => { const p = mapToItem(null, m.x, m.y); root.hoveredIn(p.x, p.y) }
         onClicked: root.activated()
     }
 }

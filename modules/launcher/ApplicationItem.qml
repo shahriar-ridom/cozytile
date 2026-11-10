@@ -8,7 +8,7 @@ Item {
     required property var entry
     property bool selected: false
     signal activated()
-    signal hoveredIn()
+    signal hoveredIn(real sceneX, real sceneY)
 
     height: 44
     Rectangle {
@@ -68,7 +68,7 @@ Item {
         id: mouse
         anchors.fill: parent
         hoverEnabled: true
-        onEntered: root.hoveredIn()
+        onPositionChanged: (m) => { const p = mapToItem(null, m.x, m.y); root.hoveredIn(p.x, p.y) }
         onClicked: root.activated()
     }
 }

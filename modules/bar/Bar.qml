@@ -39,6 +39,13 @@ PanelWindow {
         }
         Shadowed { target: base; z: -1 }
 
+        // right-click anywhere on the bar opens settings (interactive items sit above this)
+        MouseArea {
+            anchors.fill: parent
+            acceptedButtons: Qt.RightButton
+            onClicked: UiState.toggle("settings")
+        }
+
         // ---- left -------------------------------------------------------
         Row {
             id: left

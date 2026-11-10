@@ -24,6 +24,8 @@ Singleton {
     property alias timerLabel: adapter.timerLabel
     property alias timerLast: adapter.timerLast
     property alias syncDotfiles: adapter.syncDotfiles
+    property alias showTemp: adapter.showTemp
+    property alias statsInterval: adapter.statsInterval
     readonly property bool loaded: store.loaded
 
     function save() { store.writeAdapter(); }
@@ -59,6 +61,9 @@ Singleton {
             property int timerLast: 300
             // re-render generated dotfiles (kitty, starship, hyprlock, ...) whenever the theme changes
             property bool syncDotfiles: true
+            // CPU/RAM/temperature sampling period (ms) and whether the bar shows temperature
+            property int statsInterval: 2000
+            property bool showTemp: true
         }
     }
 }

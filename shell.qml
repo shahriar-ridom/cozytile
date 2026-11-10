@@ -9,6 +9,7 @@ import "modules/launcher"
 import "modules/island"
 import "modules/audio"
 import "modules/power"
+import "modules/settings"
 import "modules/wallpaper"
 
 ShellRoot {
@@ -62,6 +63,10 @@ ShellRoot {
         function toggle(): void { UiState.toggle("power"); }
     }
     IpcHandler {
+        target: "settings"
+        function toggle(): void { UiState.toggle("settings"); }
+    }
+    IpcHandler {
         target: "wallpaper"
         function toggle(): void { UiState.toggle("wallpaper"); }
         function set(path: string): void { WallpaperService.set(path, ""); }
@@ -112,6 +117,8 @@ ShellRoot {
     // ---- overlays (live on the focused screen) ----
     Launcher {}
     AudioPicker {}
+    StatPopup {}
+    SettingsPanel {}
     PowerMenu {}
     WallpaperSelector {}
 }
