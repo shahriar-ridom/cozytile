@@ -13,3 +13,5 @@ singleton ActivityService 1.0 ActivityService.qml
 singleton TimerService 1.0 TimerService.qml
 singleton LockKeysService 1.0 LockKeysService.qml
 singleton PrivacyService 1.0 PrivacyService.qml
+singleton HyprConfigService 1.0 HyprConfigService.qml
+singleton NightLightService 1.0 NightLightService.qml

@@ -13,6 +13,8 @@ Row {
     IconButton { glyph: ""; label: "Wallpaper"; size: 38; onClicked: { UiState.toggle("wallpaper"); root.done(); } }
     IconButton { glyph: AudioService.micMuted ? "" : ""; size: 38; active: AudioService.hasMic && !AudioService.micMuted
         onClicked: AudioService.toggleMic() }
+    IconButton { glyph: "\uf186"; size: 38; active: NightLightService.active; visible: NightLightService.available
+        onClicked: NightLightService.toggle() }
     IconButton { glyph: ""; size: 38; onClicked: { UiState.toggle("audioPicker"); root.done(); } }
     IconButton { glyph: ""; size: 38; onClicked: { UiState.toggle("power"); root.done(); } }
 }

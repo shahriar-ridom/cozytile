@@ -26,7 +26,14 @@ Singleton {
     property alias syncDotfiles: adapter.syncDotfiles
     property alias showTemp: adapter.showTemp
     property alias statsInterval: adapter.statsInterval
+    property alias hypr: adapter.hypr
+    property alias monitors: adapter.monitors
+    property alias autostart: adapter.autostart
+    property alias idle: adapter.idle
+    property alias nightLight: adapter.nightLight
     readonly property bool loaded: store.loaded
+    // true once the file was read, or found missing and defaults were written
+    property bool ready: false
 
     function save() { store.writeAdapter(); }
 
@@ -38,7 +45,8 @@ Singleton {
         onFileChanged: reload()
         onAdapterUpdated: writeAdapter()
         // First run: file is missing, defaults from the adapter are used and written.
-        onLoadFailed: error => { if (error === FileViewError.FileNotFound) writeAdapter(); }
+        onLoaded: root.ready = true
+        onLoadFailed: error => { if (error === FileViewError.FileNotFound) writeAdapter(); root.ready = true; }
 
         adapter: JsonAdapter {
             id: adapter
@@ -64,6 +72,16 @@ Singleton {
             // CPU/RAM/temperature sampling period (ms) and whether the bar shows temperature
             property int statsInterval: 2000
             property bool showTemp: true
+            // Hyprland option overrides set from the settings app: { "general.gaps_in": 8, ... }
+            property var hypr: ({})
+            // per-output overrides: { "HDMI-A-1": { mode, scale, transform, position, vrr, disabled } }
+            property var monitors: ({})
+            // user autostart: [{ name, command, enabled }]
+            property var autostart: []
+            // hypridle timeouts in seconds (0 = never)
+            property var idle: ({ lock: 300, dpms: 360, suspend: 1200 })
+            // hyprsunset: warm colours (always or between start/end) and software dimming (gamma %)
+            property var nightLight: ({ enabled: false, temperature: 4000, scheduled: false, start: "20:00", end: "07:00", gamma: 100 })
         }
     }
 }

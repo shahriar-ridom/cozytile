@@ -172,10 +172,34 @@ It shows a countdown chip in the island and rings (pulse and sound) when it's do
 
 ## Configuration
 
+### Settings app
+
+Right-click the bar (or `qs -c cozytile ipc call settings toggle`) to open the settings app. Jump straight to a page
+with `qs -c cozytile ipc call settings open <page>` (`appearance`, `bar`, `general`, `display`, `windows`, `input`,
+`autostart`, `power`, `about`).
+
+| Page | What it controls |
+| --- | --- |
+| Appearance, Bar, General | Theme, wallpaper, bar items, notifications, OSD, reload/restart |
+| Display | Night light (hyprsunset: warmth, always or scheduled hours), software dimming for all screens, per-monitor resolution and refresh rate, scale, rotation, position, VRR, on/off. Changes revert after 15 s unless you keep them. |
+| Windows | Layout, gaps, rounding, borders, opacity, blur, shadows, animations |
+| Input | Keyboard layouts and XKB options, key repeat, pointer speed and acceleration, focus-follows-mouse, touchpad, cursor hiding |
+| Autostart | Any command or app (with an app picker) to run at login; toggle, edit, reorder, test-run |
+| Power & idle | Lock, screen-off and suspend timeouts (hypridle) |
+| About | System info and config file locations |
+
+Hyprland changes apply live and are written to `~/.config/cozytile/generated/hypr/cozytile_settings.lua`, which
+`hyprland.lua` loads last, so they override the shipped config and survive reloads. An accent-coloured dot next to a setting means it
+was changed here; click it to go back to the config value. Idle timeouts are written to
+`~/.config/cozytile/generated/hypr/hypridle.conf`, which `config/startup.lua` prefers over the stock `hypridle.conf`.
+
+### settings.json
+
 Settings are saved to `~/.local/state/cozytile/settings.json` and reload live. You can change:
 
 `theme`, `syncDotfiles`, `wallpaperDirs`, `wallpapers`, `wallpaperTheming`, `osdTimeout` (ms), `showWorkspaceNumbers`,
-`showWindowTitle`, `dnd` (Do-Not-Disturb).
+`showWindowTitle`, `dnd` (Do-Not-Disturb), `showTemp`, `statsInterval` (ms). The settings app also stores `hypr`
+(Hyprland option overrides), `monitors`, `autostart` and `idle` here; edits to those take effect when the shell restarts.
 
 Design tokens such as fonts, bar height, margins, radii, and animation timings are in `config/Theme.qml`.
 
@@ -195,6 +219,7 @@ qs -c cozytile ipc call launcher toggle
 qs -c cozytile ipc call notifications toggle|clear|dnd     # toggle opens the island
 qs -c cozytile ipc call keys refresh                       # lock-key state
 qs -c cozytile ipc call power toggle
+qs -c cozytile ipc call nightlight toggle|on|off|status     # also: temperature 4000, dim 80
 qs -c cozytile ipc call island toggle|close
 qs -c cozytile ipc call timer start 5m|90s|1h30m|25:00     # also: stop, toggle, add 1m, status
 qs -c cozytile ipc call workspace goto <n>|next|prev

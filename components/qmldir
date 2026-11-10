@@ -8,3 +8,6 @@ IconButton 1.0 IconButton.qml
 Toggle 1.0 Toggle.qml
 Segmented 1.0 Segmented.qml
 Sparkline 1.0 Sparkline.qml
+Stepper 1.0 Stepper.qml
+TextField 1.0 TextField.qml
+Dropdown 1.0 Dropdown.qml

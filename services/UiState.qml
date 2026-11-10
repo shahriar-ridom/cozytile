@@ -12,6 +12,7 @@ Singleton {
     property bool wallpaper: false
     property bool audioPicker: false
     property bool settings: false
+    property string settingsPage: ""      // requested settings page (by name); the panel clears it
     // stat popup under the bar: "" | cpu | ram | temp, anchored at popupX (centre, screen px)
     property string statPopup: ""
     property real statPopupX: 0

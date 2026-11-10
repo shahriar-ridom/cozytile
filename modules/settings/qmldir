@@ -1,1 +1,15 @@
 SettingsPanel 1.0 SettingsPanel.qml
+SettingRow 1.0 SettingRow.qml
+ToolTipLite 1.0 ToolTipLite.qml
+Divider 1.0 Divider.qml
+Section 1.0 Section.qml
+HyprRow 1.0 HyprRow.qml
+PageAppearance 1.0 PageAppearance.qml
+PageBar 1.0 PageBar.qml
+PageDisplay 1.0 PageDisplay.qml
+PageWindows 1.0 PageWindows.qml
+PageInput 1.0 PageInput.qml
+PageAutostart 1.0 PageAutostart.qml
+PagePower 1.0 PagePower.qml
+PageGeneral 1.0 PageGeneral.qml
+PageAbout 1.0 PageAbout.qml

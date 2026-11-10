@@ -13,6 +13,9 @@ import "modules/settings"
 import "modules/wallpaper"
 
 ShellRoot {
+    // singletons load lazily; night light must run its schedule from startup
+    Component.onCompleted: NightLightService.tick()
+
     // ---- keybind entry points: `qs -c cozytile ipc call <target> <function>` ----
     IpcHandler {
         target: "launcher"
@@ -65,6 +68,8 @@ ShellRoot {
     IpcHandler {
         target: "settings"
         function toggle(): void { UiState.toggle("settings"); }
+        // open on a page: appearance | bar | general | display | windows | input | autostart | power | about
+        function open(page: string): void { UiState.closeAll(); UiState.settingsPage = page; UiState.settings = true; }
     }
     IpcHandler {
         target: "wallpaper"
@@ -86,6 +91,17 @@ ShellRoot {
         function get(): string { return Theme.name; }
         // derive the optional "wallpaper" theme from an image (matugen), without touching other themes
         function fromImage(path: string): void { ThemeService.generate(path); }
+    }
+    IpcHandler {
+        target: "nightlight"
+        function toggle(): void { NightLightService.toggle(); }
+        function on(): void { NightLightService.set({ enabled: true }); }
+        function off(): void { NightLightService.set({ enabled: false }); }
+        // kelvin, e.g. 4000 (lower is warmer)
+        function temperature(k: int): void { NightLightService.setTemperature(k); }
+        // software dimming, 20..100 percent
+        function dim(percent: int): void { NightLightService.setGamma(percent); }
+        function status(): string { return NightLightService.status + " · " + NightLightService.temperature + " K · " + NightLightService.gamma + "%"; }
     }
     IpcHandler {
         target: "audio"
