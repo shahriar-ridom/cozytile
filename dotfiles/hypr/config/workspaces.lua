@@ -4,24 +4,20 @@
 -- =============================================================================
 
 ------------------------------------------------------------
--- Scratchpad Terminal
+-- Special workspaces: spawn app when workspace is created empty
 ------------------------------------------------------------
 
-hl.workspace_rule({
-    workspace = "special:scratchpad",
+local on_created_empty = {
+    ["special:scratchpad"] = "kitty --class kitty-floating",
+    ["special:obsidian"] = "obsidian",
+}
 
-    on_created_empty = "kitty --class kitty-floating",
-})
-
-------------------------------------------------------------
--- Obsidian
-------------------------------------------------------------
-
-hl.workspace_rule({
-    workspace = "special:obsidian",
-
-    on_created_empty = "obsidian",
-})
+hl.on("workspace.created", function(ws)
+    local cmd = on_created_empty[ws.name]
+    if cmd and ws.is_empty then
+        hl.exec_cmd(cmd)
+    end
+end)
 
 ------------------------------------------------------------
 -- (Optional) Future workspace rules
