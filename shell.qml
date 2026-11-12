@@ -15,8 +15,8 @@ import "modules/settings"
 import "modules/wallpaper"
 
 ShellRoot {
-    // singletons load lazily; night light must run its schedule from startup
-    Component.onCompleted: { NightLightService.tick(); RecentService.maxApps; FrostService.enabled; }  // touch: starts recording opened apps
+    // singletons load lazily; WallpaperService restores the saved wallpaper on creation; night light must run its schedule from startup
+    Component.onCompleted: { NightLightService.tick(); RecentService.maxApps; FrostService.enabled; WallpaperService.files; }  // touch: starts recording opened apps
 
     // ---- keybind entry points: `qs -c cozytile ipc call <target> <function>` ----
     IpcHandler {
