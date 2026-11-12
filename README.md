@@ -1,277 +1,441 @@
 # Cozytile
 
-**A cozy, good-looking Hyprland desktop for Wayland.** Cozytile is a Quickshell top bar, dynamic island, launcher,
-notifications, and themed dotfiles, all sharing one colour palette. It is a Wayland-native take on the
-[Cozytile](https://github.com/Darkkal44/Cozytile) look (originally Qtile/X11).
+**A cozy, good-looking desktop for Hyprland.**
 
-![Cozytile top bar](docs/screenshots/bar.png)
+Cozytile turns Hyprland into a complete, pleasant desktop: a floating top bar, a dynamic island for notifications
+and media, a Spotlight-style launcher, a settings app, a desktop clock, and themed dotfiles for your terminal,
+prompt, lock screen and apps. Everything shares one colour palette, so the whole desktop looks like it belongs together.
 
-![Cozytile launcher](docs/screenshots/launcher.png)
+It is a Wayland-native take on the [Cozytile](https://github.com/Darkkal44/Cozytile) look, originally made for Qtile/X11.
 
-## Features
+![The Cozytile top bar](docs/screenshots/bar.png)
 
-- **One floating top bar**: workspaces, window title, tray, media, CPU/RAM/temperature, network, volume, battery, clock.
-- **Dynamic island**: shows what's playing and pops up notification banners. Click it to open the media card,
-  notification history, quick actions, and timer.
-- **Launcher**: searches your installed apps, plus calculator, emoji, and clipboard history.
-- **Notifications**: a built-in notification daemon with history, actions, Do-Not-Disturb, and progress bars.
-- **Feedback at a glance**: volume, mic, and brightness changes show in the island, with no separate OSD popups.
-- **Desktop clock**: a clean clock on the wallpaper (minimal, stacked, or analog), click-through and behind every window. Style, corner, and size live in Settings.
-- **Wallpapers**: a thumbnail picker that remembers your choice per monitor.
-- **Themes**: Everforest (default) and Sakura, plus an optional "from wallpaper" theme (via matugen). Switch live with one key.
-- **Whole-desktop look**: terminal, prompt, lock screen, GTK/Qt apps, and optionally the login screen all match the theme.
+---
 
-## Quick start
+## Contents
+
+- [A tour](#a-tour)
+- [Get started](#get-started)
+- [Requirements](#requirements)
+- [Using Cozytile](#using-cozytile)
+- [Keyboard shortcuts](#keyboard-shortcuts)
+- [Settings](#settings)
+- [Command line and scripting](#command-line-and-scripting)
+- [Troubleshooting](#troubleshooting)
+- [Project layout](#project-layout)
+
+---
+
+## A tour
+
+### The top bar
+
+A floating bar with two tones and rounded caps. It holds your workspaces, the focused window's title, and the
+system at a glance: CPU, RAM, temperature, network, volume, battery, tray icons and the clock.
+Click the logo for the system menu. Items you don't need can be hidden in Settings, and the bar drops optional
+items automatically on narrow screens.
+
+![The launcher](docs/screenshots/launcher.png)
+
+### The launcher
+
+Press `Super + Space` (or `Super + D`) and start typing. It searches:
+
+- **Apps** and **open windows**, with fuzzy matching (`ffx` finds Firefox).
+- **Calculator** and **unit and currency conversion**, as you type (`12 km to mi`).
+- **Files** (prefix `/`), **system actions**, and **web search** (`g`, `yt`, `gh`, `w`, `so`, `aur`, `aw`, `mdn` followed by your text).
+- **Emoji** (prefix `:`), with your recent ones first.
+- **Clipboard history** (type `clip`).
+- **Shell commands** (prefix `>`).
+
+### The dynamic island
+
+The island sits at the top centre and does three jobs:
+
+- **Banners**: notifications and feedback pop up here, so there are no separate OSD popups. Volume, microphone and
+  brightness changes show here too.
+- **Media**: shows what's playing, with play/pause and skip controls.
+- **Panel**: click it to open the full card, with the timer, notification history, and quick actions (theme, wallpaper, microphone, night light, volume, power).
+
+![The island, with the timer and quick actions](docs/screenshots/island.png)
+
+### Notifications
+
+Cozytile includes its own notification daemon, so there's nothing extra to install. You get:
+
+- Popups and a notification history you can open from the island.
+- Actions on notifications, and progress bars.
+- **Do-Not-Disturb**: silences banners while you work. Toggle it from the island's notification panel.
+
+### Timers
+
+The island has a built-in timer with quick presets (1m, 5m, 10m, 25m) or a custom time. A countdown chip
+appears in the island while it runs, and the timer rings, with a pulse and sound, when it finishes. Click the island to silence it.
+
+A timer running inside a web page can't be shown here, because browsers don't expose it to the desktop.
+If the page sends a notification, it appears as a normal banner.
+
+### The desktop clock
+
+A clock on your wallpaper, behind your windows and click-through, so it never gets in the way.
+Pick a style in Settings: **minimal**, **stacked**, or **analog**. You can also choose its corner and size.
+
+![The desktop clock](docs/screenshots/desktop-clock.png)
+
+### Wallpapers
+
+A thumbnail picker (`Super + Ctrl + O`) shows the images in the folders you choose. Each monitor can have its own
+wallpaper, and "Theme from wallpaper" builds the whole colour scheme from the picture you choose.
+Cozytile doesn't ship wallpapers, so point it at your own folder.
+
+![The wallpaper picker](docs/screenshots/wallpapers.png)
+
+### Themes
+
+Two built-in colour schemes, **Everforest** (default) and **Sakura**, plus an optional **from-wallpaper** theme
+that derives its colours from your picture. Switch with `Super + Shift + T`. A theme change re-colours the bar,
+island, launcher and settings, and re-themes the apps you've hooked up (terminal, prompt, lock screen, GTK and Qt).
+
+![The settings app, Appearance page](docs/screenshots/settings-appearance.png)
+
+### Frosted glass
+
+Turn on **Frosted glass** in Settings → Appearance for a translucent look. Panels, the bar, the island, windows, the
+lock screen and themed apps get a blurred, palette-tinted surface, much like a frosted terminal window.
+Off gives you solid surfaces.
+
+### Power menu
+
+`Super + X` opens a menu to **lock**, **log out**, **suspend**, **reboot**, or **shut down**. Use the arrow keys
+and `Enter`, or click.
+
+![The power menu](docs/screenshots/power-menu.png)
+
+### Lock screen
+
+Your lock screen is themed to match the desktop, and you can customise it in Settings → Lock screen:
+
+- Pick a background image (or use your desktop wallpaper).
+- Set the blur and brightness of the background.
+- Choose the clock size (large, medium or small), font, and 12- or 24-hour time.
+
+![Lock screen settings](docs/screenshots/lock-screen-settings.png)
+
+### Global menu
+
+Turn on **Global menu** in Settings → Bar. The left of the bar then shows the focused app's menus, the way
+macOS does. Menus that don't fit collapse behind a `»` button. Some apps need a small setup first; see
+[Global menu setup](#global-menu-setup).
+
+### Display, input and power
+
+- **Night light** warms the screen, either all the time or on a schedule. You can also dim all screens in software.
+- **Monitors**: resolution, refresh rate, scale, rotation, position, VRR, and on/off. Changes revert after 15 seconds
+  unless you keep them, so you can't lock yourself out of a display.
+- **Keyboard and mouse**: keyboard layouts and XKB options, key repeat, pointer speed and acceleration,
+  focus-follows-mouse, touchpad options, and cursor hiding.
+- **Power and idle**: when to lock, turn off the screen, and suspend.
+- **Autostart**: run any command or app at login, with an app picker. You can test-run, reorder and toggle entries.
+- **Lock-key hints**: the island tells you when Caps Lock, Num Lock or Scroll Lock is on.
+- **Privacy**: the island shows when an app is using your microphone or camera, and which app.
+
+### Hyprland, made easy
+
+Windows, gaps, rounding, borders, opacity, blur, shadows and animations all have sliders and toggles in
+Settings → Windows. Changes apply live and survive reloads. Hyprland's own config stays readable and
+hand-editable, and the settings app writes only the values you change.
+
+---
+
+## Get started
 
 On Arch or CachyOS, with an internet connection:
 
 ```sh
 git clone https://github.com/shahriar-ridom/cozytile.git
 cd cozytile
-./setup.sh --packages        # installs everything Cozytile needs (optional, but recommended)
-./setup.sh                   # installs the shell and links the dotfiles
+./setup.sh --dry-run         # 1. preview every change (touches nothing)
+./setup.sh --packages        # 2. install the packages Cozytile needs
+./setup.sh                   # 3. install the shell and link the dotfiles
 ```
 
-Then log out and back in, and choose **Hyprland** at the login screen. That's it.
+Then log out, choose **Hyprland** at the login screen, and log in. That's it.
 
-> Not on Arch? Read [Requirements](#requirements) and install the packages listed in `packages.txt` by hand.
+Want to try it in your current session first? Run `~/.config/quickshell/cozytile/scripts/launch.sh`.
+
+`setup.sh` is safe to re-run. Anything it would replace is first moved to `*.bak-<timestamp>`.
+
+### Other ways to install
+
+| I want… | Run |
+|---|---|
+| The full desktop (recommended) | `./setup.sh` |
+| Only the bar, island and launcher, with my own Hyprland config | `./install.sh` |
+| To try it without installing | `qs -p .` from the repo folder |
+| The Cozytile login screen (SDDM) | `./setup.sh --sddm` (needs sudo) |
+| To start with the Sakura theme | `./setup.sh --theme sakura` |
+
+> The installed shell is a **copy** in `~/.config/quickshell/cozytile`. After you edit the QML, run `./install.sh`
+> again, or use `qs -p .` to run straight from the repo.
+
+### What the installer changes
+
+- The shell goes to `~/.config/quickshell/cozytile`.
+- Your themed config files are generated into `~/.config/cozytile/generated/`.
+- These are **symlinked to this repo**, so editing them here updates your desktop right away:
+  `~/.config/hypr`, `kitty`, `~/.zshrc`, and the GTK 3/4 settings. Qt (`qt6ct`) is rendered as well.
+
+Edit the dotfiles in this repo, not in `~/.config`.
+
+Machine-specific settings (monitor layout, GPU) go in `dotfiles/hypr/config/local.lua`. `setup.sh` creates it from
+`local.example.lua`. It is git-ignored, so it never gets committed.
+
+### Undo and uninstall
+
+```sh
+./rollback.sh                # restores the previous shell install
+./uninstall.sh               # removes the installed shell (your settings are kept)
+./uninstall.sh --purge       # also removes your saved settings
+```
+
+The dotfile symlinks aren't removed automatically. To go back to your old config, restore the `*.bak-<timestamp>`
+copies next to them.
+
+---
 
 ## Requirements
 
 | Needed | Why |
 |---|---|
-| **Hyprland** (a version with the Lua config, 0.55 or newer) | the window manager Cozytile runs on. The bundled config is `hyprland.lua` |
-| **Quickshell** (0.3 or newer, built with Hyprland, PipeWire, MPRIS, Notifications, SystemTray, UPower, Networking) | the bar, island, and launcher |
-| **CaskaydiaCove Nerd Font** | icons and monospace text. Any other Nerd Font works. Set `Theme.fontMono` in `config/Theme.qml` |
-| **SF Pro Text** (optional) | the UI text font. It isn't in the Arch repos, so Qt falls back to another sans font. Change `Theme.font` to any font you like |
+| **Hyprland 0.55 or newer** (Lua config) | The window manager. The bundled config is `hyprland.lua` |
+| **Quickshell 0.3 or newer**, built with Hyprland, PipeWire, MPRIS, Notifications, SystemTray, UPower and Networking | The bar, island, launcher and settings app |
+| **CaskaydiaCove Nerd Font** | Icons and monospace text. Any Nerd Font works; set `Theme.fontMono` in `config/Theme.qml` |
+| **SF Pro Text** (optional) | The UI font. It isn't in the Arch repos, so Qt falls back to another sans font. Set `Theme.font` to any font you like |
 
-Optional, and each one unlocks a feature if present: `awww`, `swww`, `hyprpaper`, or `swaybg` (wallpapers),
-`matugen` (wallpaper theme), `hyprlock` (lock screen), `brightnessctl` (brightness), `playerctl` (media keys),
-`kitty`, `zsh`, `starship` (the terminal setup).
+Optional extras, each one unlocking a feature when installed:
 
-> **Important:** only one notification daemon can run at a time. Stop others first (`dunst`, `swaync`, `mako`, …).
+| Tool | Unlocks |
+|---|---|
+| `awww`, `swww`, `hyprpaper` or `swaybg` | Wallpapers |
+| `matugen` | The from-wallpaper theme |
+| `hyprlock` | The lock screen |
+| `hypridle` | Idle timeouts |
+| `brightnessctl` | Screen brightness keys |
+| `playerctl` | Media keys |
+| `hyprshot` | Screenshots |
+| `kitty`, `zsh`, `starship` | The themed terminal and prompt |
+| `python3` + PyGObject | The global menu |
 
-## Installation
+> **Important:** only one notification daemon can run at a time. Stop any others first (`dunst`, `swaync`, `mako`, …).
 
-### Option 1: Full desktop (recommended)
-
-This installs the shell **and** the dotfiles (Hyprland config, terminal, prompt, theme).
-
-```sh
-./setup.sh --dry-run         # 1. preview every change without touching anything
-./setup.sh --packages        # 2. install packages from packages.txt (pacman + AUR helper)
-./setup.sh                   # 3. install the shell and link the dotfiles
-```
-
-Log out and back in to start Cozytile, or run `hyprctl reload && ~/.config/quickshell/cozytile/scripts/launch.sh` (starts `qs -c cozytile` with transparent huge pages off, ~80 MB less RAM) to try it in your current session.
-
-`setup.sh` is safe to re-run. Any existing file it would replace is moved to `*.bak-<timestamp>` first.
-
-> The shell is **copied** to `~/.config/quickshell/cozytile`, so after editing QML files in the repo run `./install.sh` again
-> (or use `qs -p .` to run straight from the repo).
-
-### Option 2: Shell only
-
-If you want the bar, island, and launcher, but you'll keep your own Hyprland config:
-
-```sh
-./install.sh                 # installs the Quickshell shell to ~/.config/quickshell/cozytile
-```
-
-### Option 3: Try it without installing
-
-```sh
-qs -p .                      # runs the shell straight from this folder
-```
-
-### Optional extras
-
-```sh
-./setup.sh --sddm            # Cozytile login screen (SDDM). Needs sudo.
-./setup.sh --theme sakura    # start with the Sakura theme instead of Everforest
-```
-
-### What the installer changes
-
-- The shell goes to `~/.config/quickshell/cozytile`.
-- Theme files render to `~/.config/cozytile/generated/`.
-- These are **symlinked to this repo**, so editing them in the repo updates your desktop right away:
-  `~/.config/hypr`, `kitty/kitty.conf`, `~/.zshrc`, and the GTK 3/4 `settings.ini`.
-- Qt (`qt6ct`) is rendered, and the GTK colour import is added.
-
-Edit the dotfiles in this repo, not in `~/.config`.
-
-Machine-specific settings (monitor layout, GPU) go in `dotfiles/hypr/config/local.lua`. `setup.sh` creates it from
-`local.example.lua` on the first run. The file is git-ignored, so it never gets committed.
-
-## Undo and uninstall
-
-```sh
-./rollback.sh                # restores the previous shell install that install.sh moved aside
-./uninstall.sh               # removes the installed shell (your settings are kept)
-./uninstall.sh --purge       # also removes the saved settings
-```
-
-The dotfile symlinks (`~/.config/hypr`, `kitty`, `~/.zshrc`, GTK) are not removed. To go back, restore the
-`*.bak-<timestamp>` copies next to them.
+---
 
 ## Using Cozytile
 
-### Keyboard
+### Mouse
+
+- **Logo**: left-click for the launcher, right-click for the power menu, middle-click for wallpapers.
+- **Volume**: click to mute, scroll to change, right-click for the output picker, middle-click to mute the mic.
+- **Clock**: click to show the date.
+- **Island**: click to expand, middle-click to play/pause. The island's notification panel has the Do-Not-Disturb toggle.
+- **Workspace dots**: click or scroll to switch.
+
+---
+
+## Keyboard shortcuts
+
+`Super` is the Windows/Command key. The full list lives in `dotfiles/hypr/config/binds.lua`.
+
+**Apps and shell**
 
 | Keys | Action |
 |---|---|
-| `Super + Return` | Terminal |
-| `Super + D` or `Space` | Launcher |
-| `Super + A` | Dynamic island (notifications, media, quick actions) |
-| `Super + X` | Power menu (lock, log out, suspend, reboot, shut down) |
-| `Super + Ctrl + L` | Lock screen |
+| `Super + Return` | Terminal (kitty) |
+| `Super + Shift + Return` | Floating terminal |
+| `Super + B` | Browser (Zen) |
+| `Super + C` | VS Code |
+| `Super + N` | Neovim in the terminal |
+| `Super + Space` or `Super + D` | Launcher |
+| `Super + A`, `Super + Shift + N` or `Super + Shift + I` | Island (notifications, media, timer) |
 | `Super + Shift + T` | Next theme |
 | `Super + Ctrl + O` | Wallpaper picker |
-| `Super + Shift + S` | Screenshot a region |
-| `Super + H/J/K/L` | Move focus |
-| `Super + 1…0` | Switch workspace |
-| `` Super + ` `` | Scratchpad |
+| `Super + X` | Power menu |
+| `Super + Ctrl + L` | Lock screen |
 
-Full list: `dotfiles/hypr/config/binds.lua`.
+**Windows and layout**
 
-### Mouse
+| Keys | Action |
+|---|---|
+| `Super + Q` | Close window |
+| `Super + V` | Toggle floating |
+| `Super + Ctrl + C` | Centre a floating window |
+| `Super + F` | Fullscreen (covers the bar) |
+| `Super + Shift + F` | Maximise (keeps the bar and gaps) |
+| `Super + S` | Toggle split direction |
+| `Super + P` | Pseudo-tile |
+| `Super + M` | Swap with master |
+| `Super + H / J / K / L` | Move focus left / down / up / right |
+| `Super + Shift + H / J / K / L` | Move the window in that direction |
+| `Super + Mouse drag` | Move a window |
+| `Super + Right-drag` | Resize a window |
+| `` Super + ` `` | Toggle the scratchpad |
+| `Super + O` | Toggle the Obsidian scratchpad |
 
-- **Logo**: left = launcher, right = power menu, middle = wallpapers.
-- **Volume**: click = mute, scroll = volume, right-click = output picker, middle-click = mute the mic.
-- **Clock**: click = show the date.
-- **Island**: click = expand, middle-click = play/pause, right-click = Do-Not-Disturb.
-- **Workspace dots**: click or scroll to switch.
+**Workspaces**
 
-### Wallpapers
+| Keys | Action |
+|---|---|
+| `Super + 1 … 0` | Go to workspace 1–10 |
+| `Super + Shift + 1 … 0` | Move the window to workspace 1–10 |
+| `Super + Mouse wheel` | Previous / next workspace |
 
-Cozytile doesn't ship wallpapers. Point the picker at your own folder from settings. Inside the picker:
-arrows move, `Enter`/`Space` apply, `Tab` switches monitor, `Esc` closes.
+**Screenshots**
 
-### Themes
+| Keys | Action |
+|---|---|
+| `Super + Shift + S` | Region |
+| `Super + Ctrl + S` | Whole screen |
+| `Super + Shift + W` | A window |
 
-Switch from the bar, with `Super + Shift + T`, or from the command line:
+Screenshots are saved to `~/Pictures/Screenshots`.
+
+**Session**
+
+| Keys | Action |
+|---|---|
+| `Super + Shift + R` | Reload Hyprland |
+| `Super + Shift + E` | Exit Hyprland |
+
+**Media and hardware keys:** volume, mute, brightness, and play/pause/next/previous are bound by default. Volume
+and brightness show their feedback in the island.
+
+---
+
+## Settings
+
+Open the settings app by right-clicking the bar, or run `qs -c cozytile ipc call settings toggle`. You can also jump straight to a page:
 
 ```sh
-~/.config/cozytile/theme-apply.sh sakura      # re-render everything and reload apps
+qs -c cozytile ipc call settings open <page>
 ```
 
-Switching theme re-renders the terminal, prompt, lock screen, and other apps you've hooked up. Only apps you've set up are reloaded.
+Pages: `appearance`, `desktop`, `lock screen`, `bar`, `general`, `display`, `windows`, `input`, `autostart`, `power`, `about`.
 
-### Timers
+| Group | Page | What's in it |
+|---|---|---|
+| Personalise | **Appearance** | Colour scheme, from-wallpaper theme, app syncing, frosted glass, fonts |
+| Personalise | **Desktop** | Desktop clock style, corner and size, wallpapers |
+| Personalise | **Lock screen** | Background, blur, brightness, clock size, font, 12/24-hour time |
+| Shell | **Bar** | Which items show, the global menu, window title, workspace numbers, temperature |
+| Shell | **General** | Notifications, Do-Not-Disturb, OSD timing, reload and restart |
+| System | **Display** | Night light, software dimming, monitors (resolution, refresh, scale, rotation, position, VRR) |
+| System | **Windows** | Layout, gaps, rounding, borders, opacity, blur, shadows, animations |
+| System | **Input** | Keyboard layouts, XKB options, key repeat, pointer speed, touchpad, cursor |
+| System | **Autostart** | Commands and apps started at login |
+| System | **Power & idle** | Lock, screen-off and suspend timeouts |
+| | **About** | System info and config file locations |
 
-The island has a built-in timer. Start one from the expanded island, or from the command line:
+**Good to know**
 
-```sh
-qs -c cozytile ipc call timer start 5m       # also: 90s, 1h30m, 25:00, stop, toggle, add 1m, status
-```
+- Hyprland changes apply live and are saved to `~/.config/cozytile/generated/hypr/cozytile_settings.lua`, which loads
+  after the shipped config. Your choices survive reloads.
+- A small accent-coloured dot next to a setting means you've changed it from the default. Click the dot to go back.
+- The settings app remembers the page you last used.
+- Press `Esc` to close, and `Ctrl + Tab` for the next page.
 
-It shows a countdown chip in the island and rings (pulse and sound) when it's done. Click the island to silence it.
+### Settings file
 
-> A timer running inside a web page (such as a Google timer) can't be shown here, because browsers don't expose it to the desktop.
-> If the page sends a notification, it appears as a normal banner.
+Settings are saved to `~/.local/state/cozytile/settings.json` and reload live. Keys include `theme`,
+`syncDotfiles`, `wallpaperDirs`, `wallpapers`, `wallpaperTheming`, `osdTimeout` (ms), `showWorkspaceNumbers`,
+`showWindowTitle`, `globalMenu`, `dnd`, `showTemp`, `statsInterval` (ms), `frostedGlass` and `lockscreen`.
+The settings app also stores `hypr` (Hyprland overrides), `monitors`, `autostart` and `idle`. Changes to those
+take effect when the shell restarts.
 
-## Configuration
-
-### Settings app
-
-Right-click the bar (or `qs -c cozytile ipc call settings toggle`) to open the settings app. Jump straight to a page
-with `qs -c cozytile ipc call settings open <page>` (`appearance`, `bar`, `general`, `display`, `windows`, `input`,
-`autostart`, `power`, `about`).
-
-| Page | What it controls |
-| --- | --- |
-| Appearance, Bar, General | Theme, wallpaper, bar items, notifications, OSD, reload/restart |
-| Display | Night light (hyprsunset: warmth, always or scheduled hours), software dimming for all screens, per-monitor resolution and refresh rate, scale, rotation, position, VRR, on/off. Changes revert after 15 s unless you keep them. |
-| Windows | Layout, gaps, rounding, borders, opacity, blur, shadows, animations |
-| Input | Keyboard layouts and XKB options, key repeat, pointer speed and acceleration, focus-follows-mouse, touchpad, cursor hiding |
-| Autostart | Any command or app (with an app picker) to run at login; toggle, edit, reorder, test-run |
-| Power & idle | Lock, screen-off and suspend timeouts (hypridle) |
-| About | System info and config file locations |
-
-Hyprland changes apply live and are written to `~/.config/cozytile/generated/hypr/cozytile_settings.lua`, which
-`hyprland.lua` loads last, so they override the shipped config and survive reloads. An accent-coloured dot next to a setting means it
-was changed here; click it to go back to the config value. Idle timeouts are written to
-`~/.config/cozytile/generated/hypr/hypridle.conf`, which `config/startup.lua` prefers over the stock `hypridle.conf`.
-
-### settings.json
-
-Settings are saved to `~/.local/state/cozytile/settings.json` and reload live. You can change:
-
-`theme`, `syncDotfiles`, `wallpaperDirs`, `wallpapers`, `wallpaperTheming`, `osdTimeout` (ms), `showWorkspaceNumbers`,
-`showWindowTitle`, `globalMenu`, `dnd` (Do-Not-Disturb), `showTemp`, `statsInterval` (ms). The settings app also stores `hypr`
-(Hyprland option overrides), `monitors`, `autostart` and `idle` here; edits to those take effect when the shell restarts.
-
-Design tokens such as fonts, bar height, margins, radii, and animation timings are in `config/Theme.qml`.
-
-### Global menu
-
-With `globalMenu` on (Settings → Bar → Global menu), the left of the bar shows the focused app's menus, like macOS.
-Titles that don't fit collapse behind a » button that lists the rest. `scripts/globalmenu.py` (python3 + PyGObject)
-registers as the session's `com.canonical.AppMenu.Registrar` and bridges each app's `dbusmenu`; it only runs while the
-setting is on, and doesn't start if another registrar already owns the bus name.
-
-Hyprland cannot export menus from native-Wayland windows, so apps must run through XWayland to show theirs.
-`scripts/menu-launchers.sh` writes launcher overrides to `~/.local/share/applications` for Dolphin, LibreWolf and Zen
-(plus Thunar and GIMP when `appmenu-gtk-module` is installed); `--remove` undoes it. Start those apps from the launcher
-or desktop entry, or set the variables listed in the script yourself. Firefox-family browsers also need
-`widget.gtk.global-menu.enabled` set to true in the profile (`user.js`). Only apps started after the shell is running
-export a menu. Apps that never export one show nothing: kitty has no global-menu support on Linux, and Chrome did not
-register a menu in testing.
+Design tokens (fonts, bar height, margins, radii, animation timings) are in `config/Theme.qml`.
 
 ### Adding a theme
 
 Add an entry to `palettes` in `config/Theme.qml` with the same keys as the existing ones
 (`bg bg2 bg3 dim fg fg2 muted green blue yellow orange red purple accent workspaceActive`), then add its name to
-`themeNames` and `themeLabels`. Components use semantic colour roles, so a new theme recolours everything automatically.
+`themeNames` and `themeLabels`. Every component uses semantic colour roles, so a new theme recolours everything automatically.
 
-<details>
-<summary><b>Command reference (IPC)</b></summary>
+### Global menu setup
+
+The global menu needs apps to run through XWayland, because Hyprland can't export menus from native Wayland windows.
+
+- `scripts/menu-launchers.sh` writes launcher overrides for Dolphin, LibreWolf and Zen (plus Thunar and GIMP when
+  `appmenu-gtk-module` is installed). Run it with `--remove` to undo.
+- Start those apps from the launcher or a desktop entry. Only apps started after the shell is running export a menu.
+- Firefox-family browsers also need `widget.gtk.global-menu.enabled` set to `true` in the profile (`user.js`).
+- Some apps never export a menu. kitty has no global-menu support on Linux.
+
+---
+
+## Command line and scripting
 
 Every action is an IPC call, so any keybind tool can use them:
 
 ```sh
 qs -c cozytile ipc call launcher toggle
-qs -c cozytile ipc call notifications toggle|clear|dnd     # toggle opens the island
-qs -c cozytile ipc call keys refresh                       # lock-key state
-qs -c cozytile ipc call power toggle
-qs -c cozytile ipc call nightlight toggle|on|off|status     # also: temperature 4000, dim 80
+qs -c cozytile ipc call notifications toggle|clear|dnd
 qs -c cozytile ipc call island toggle|close
-qs -c cozytile ipc call timer start 5m|90s|1h30m|25:00     # also: stop, toggle, add 1m, status
+qs -c cozytile ipc call timer start 5m|90s|1h30m|25:00   # also: stop, toggle, add 1m, status
 qs -c cozytile ipc call workspace goto <n>|next|prev
 qs -c cozytile ipc call wallpaper toggle
 qs -c cozytile ipc call theme next|set sakura|get
 qs -c cozytile ipc call audio up|down|mute|micMute
 qs -c cozytile ipc call brightness up|down|kbdUp|kbdDown
+qs -c cozytile ipc call nightlight toggle|on|off|status   # also: temperature 4000, dim 80
+qs -c cozytile ipc call keys refresh
+qs -c cozytile ipc call power toggle
+qs -c cozytile ipc call settings toggle|open <page>
 ```
 
-</details>
+Re-render the themed dotfiles and reload apps for a theme from the command line:
+
+```sh
+~/.config/cozytile/theme-apply.sh sakura
+```
+
+Only apps you've set up are reloaded.
+
+---
 
 ## Troubleshooting
 
 | Problem | Fix |
 |---|---|
-| **No notifications** | Another daemon owns notifications. Check with `busctl --user status org.freedesktop.Notifications`, then stop it. |
-| **Missing icons or boxes** | Install a Nerd Font and set `Theme.font` in `config/Theme.qml`. |
+| **No notifications** | Another daemon owns them. Check with `busctl --user status org.freedesktop.Notifications`, then stop it. |
+| **Missing icons or empty boxes** | Install a Nerd Font and set `Theme.fontMono` in `config/Theme.qml`. |
 | **Wallpaper doesn't change** | Run `scripts/wallpaper.sh /path/to/image.png` in a terminal to see the error. |
-| **No temperature shown** | No sensor was found (`k10temp`, `coretemp`, or `zenpower`). The item hides itself. |
-| **Installer says a module is missing** | Your Quickshell build lacks a service module. Rebuild Quickshell with the modules listed in [Requirements](#requirements). |
-| **Something looks wrong** | Read the logs with `qs -c cozytile log`, or look in `~/.cache/quickshell`. |
+| **No temperature shown** | No sensor was found (`k10temp`, `coretemp` or `zenpower`). The item hides itself. |
+| **Installer says a module is missing** | Your Quickshell build lacks a service module. Rebuild it with the modules listed in [Requirements](#requirements). |
+| **Shell fails to load after editing QML** | One QML error stops the whole shell. Lint with `qmllint <files>`, then check the log with `qs -c cozytile log`. |
+| **Something else looks wrong** | Check `~/.cache/quickshell`, or run `qs -c cozytile log`. |
 
-On narrow screens, the bar drops optional items: network and temperature below 1500 px, search, CPU, and RAM below 1150 px.
+On narrow screens, the bar drops optional items: network and temperature below 1500 px, and search, CPU and RAM below 1150 px.
+
+---
 
 ## Project layout
 
 | Path | What's inside |
 |---|---|
-| `shell.qml`, `config/`, `services/`, `modules/`, `components/` | The Quickshell shell |
-| `dotfiles/hypr/` | Hyprland config (`hyprland.lua`, `config/*.lua`), idle and lock, helper scripts |
-| `dotfiles/kitty`, `zsh`, `gtk`, `qt6ct` | Terminal, shell, and toolkit settings |
+| `shell.qml` | The entry point: IPC handlers, the bar, island, desktop clock, and overlays |
+| `config/` | Settings, the theme, and the palette (`palettes.json`) |
+| `services/` | Stateless services: audio, network, media, notifications, timer, frosted glass, and more |
+| `modules/` | The UI, one folder per feature (bar, island, launcher, settings, power, wallpaper, clock, …) |
+| `components/` | Shared widgets (toggle, dropdown, segmented control, slider, …) |
+| `scripts/` | Helper scripts: wallpapers, theme switching, global menu, recent files |
+| `dotfiles/hypr/` | Hyprland config (`hyprland.lua`, `config/*.lua`), idle, lock and helper scripts |
+| `dotfiles/kitty`, `zsh`, `gtk`, `qt6ct`, `sddm` | Terminal, shell, toolkit and login-screen settings |
 | `dotfiles/templates/` + `render.py` | Renders themed configs from `config/palettes.json` |
 | `packages.txt` | Arch and CachyOS package list |
+| `docs/screenshots/` | Screenshots used in this README |
 
-## Fidelity
+---
 
-Cozytile matches the reference's look in structure and proportions: two-tone bar, S-curve caps, slash separators,
-dot workspaces, and the 30 px bar height. The separators are drawn as vector shapes, and the logo is an original
-four-diamond mark. It's close to the original, not pixel-identical.
+## Credits
+
+Cozytile's look is inspired by the original [Cozytile](https://github.com/Darkkal44/Cozytile) for Qtile.
+Built with [Quickshell](https://quickshell.org) and [Hyprland](https://hyprland.org).
