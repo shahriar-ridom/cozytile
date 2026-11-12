@@ -6,6 +6,8 @@
 <theme> is a key of config/palettes.json, or "wallpaper" (uses the matugen palette
 cached by the shell in ~/.local/state/cozytile/wallpaper-palette.json).
 Placeholders in templates/*.tpl:  {{key}}  {{key|nohash}}  {{key|rgb}}  {{key|hypr}}  {{key|rgba:AA}}
+Blocks (not nestable):  {{#if key}}...{{/if}}  {{#unless key}}...{{/unless}}   (key is non-empty / empty)
+Lock screen options come from the "lockscreen" object in ~/.local/state/cozytile/settings.json.
 """
 import argparse, json, os, re, sys
 from pathlib import Path
@@ -53,7 +55,7 @@ def hexrgb(h):
 
 def sub(m, pal, extra):
     key, _, flt = m.group(1).strip().partition("|")
-    val = extra.get(key) or pal.get(key)
+    val = extra[key] if key in extra else pal.get(key)
     if val is None: sys.exit(f"template uses unknown key '{key}'")
     flt = flt.strip()
     if flt == "": return val
@@ -65,6 +67,43 @@ def sub(m, pal, extra):
     if flt.startswith("rgba:"): return "rgba(" + val.lstrip("#") + flt[5:] + ")"
     sys.exit(f"unknown filter '{flt}'")
 
+LOCK_DEFAULTS = {"wallpaper": "", "blur": 3, "dim": 70, "clock": "large", "font": "sans", "hour24": True, "seconds": False,
+                 "showDate": True, "showStatus": True, "showUser": True, "showAvatar": True, "hint": "Enter password"}
+LOCK_FONTS = {"sans": "SF Pro Display Bold", "rounded": "SF Pro Rounded Bold", "mono": "CaskaydiaCove Nerd Font Bold"}
+LOCK_SIZES = {"large": 150, "medium": 112, "small": 80}
+
+def lock_extras(wallpaper):
+    """Flatten the lockscreen settings into template keys; empty string = off (for {{#if}} blocks)."""
+    try: cfg = json.loads((STATE / "settings.json").read_text()).get("lockscreen") or {}
+    except Exception: cfg = {}
+    c = {**LOCK_DEFAULTS, **cfg}
+    wall = os.path.expanduser(str(c["wallpaper"] or ""))
+    if not (wall and Path(wall).is_file()): wall = wallpaper or "screenshot"
+    face = next((str(p) for p in (Path.home() / ".face", Path.home() / ".face.icon") if p.is_file()), "")
+    size = LOCK_SIZES.get(c["clock"], 150)
+    bat = bool(list(Path("/sys/class/power_supply").glob("BAT*")))
+    on = lambda v: "1" if v else ""
+    hint = re.sub(r'[<>&\n]', "", str(c["hint"] or "")).strip()
+    return {
+        "lock_wallpaper": wall,
+        "lock_blur": str(max(0, min(5, int(c["blur"])))),
+        "lock_dim": "%.2f" % (max(10, min(100, int(c["dim"]))) / 100),
+        "lock_clock_size": str(size), "lock_date_size": str(round(size * 0.17 + 4)),
+        "lock_font": LOCK_FONTS.get(c["font"], LOCK_FONTS["sans"]),
+        "lock_time_fmt": ("%H:%M" if c["hour24"] else "%-I:%M") + (":%S" if c["seconds"] else ""),
+        "lock_date": on(c["showDate"]), "lock_status": on(c["showStatus"]),
+        "lock_user": on(c["showUser"]), "lock_avatar": face if c["showAvatar"] else "",
+        "lock_clock_y": "-10%" if c["showDate"] else "-7.5%",
+        "lock_battery": on(bat and c["showStatus"]), "lock_layout_x": "-60" if bat else "-18",
+        "lock_hint": hint or "Enter password",
+    }
+
+def blocks(text, extra):
+    def one(m):
+        keep = bool(extra.get(m.group(2))) == (m.group(1) == "if")
+        return m.group(3) if keep else ""
+    return re.sub(r"\{\{#(if|unless) (\w+)\}\}(.*?)\{\{/\1\}\}\n?", one, text, flags=re.S)
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("theme"); ap.add_argument("--out", default=str(CONF))
@@ -75,12 +114,12 @@ def main():
     miss = [k for k in REQUIRED if k not in pal]
     if miss: sys.exit("palette missing keys: " + ", ".join(miss))
     extra = {"theme": a.theme, "label": pal.get("label", a.theme), "wallpaper": a.wallpaper or "screenshot",
-             "home": str(Path.home())}
+             "home": str(Path.home()), **lock_extras(a.wallpaper)}
     out = Path(a.out)
     for tpl, rel in TARGETS.items():
         src = HERE / "templates" / tpl
         if not src.exists(): print(f"skip (no template) {tpl}", file=sys.stderr); continue
-        text = re.sub(r"\{\{(.+?)\}\}", lambda m: sub(m, pal, extra), src.read_text())
+        text = re.sub(r"\{\{(.+?)\}\}", lambda m: sub(m, pal, extra), blocks(src.read_text(), extra))
         dst = out / rel; dst.parent.mkdir(parents=True, exist_ok=True)
         tmp = dst.with_name(dst.name + ".tmp"); tmp.write_text(text); tmp.replace(dst)   # atomic: apps never see half files
         print(f"wrote {dst}")

@@ -26,6 +26,7 @@ PanelWindow {
     readonly property var pages: [
         { name: "Appearance", icon: "", file: "PageAppearance.qml", group: "Shell" },
         { name: "Bar",        icon: "", file: "PageBar.qml",        group: "Shell" },
+        { name: "Lock screen", icon: "", file: "PageLockscreen.qml", group: "Shell" },
         { name: "General",    icon: "", file: "PageGeneral.qml",    group: "Shell" },
         { name: "Display",    icon: "", file: "PageDisplay.qml",    group: "System" },
         { name: "Windows",    icon: "", file: "PageWindows.qml",    group: "System" },

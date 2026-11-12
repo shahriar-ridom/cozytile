@@ -19,12 +19,20 @@ PanelWindow {
 
     property string target: "*"     // "*" = all monitors, otherwise output name
     readonly property var targets: ["*"].concat(Quickshell.screens.map(s => s.name))
+    readonly property bool forLock: UiState.wallpaperFor === "lock"
+    // desktop: apply to the chosen monitor; lock screen: remember the pick and close
+    function choose(path) {
+        if (!path) return;
+        if (forLock) { LockscreenService.set("wallpaper", path); UiState.wallpaper = false; }
+        else WallpaperService.set(path, target === "*" ? "" : target);
+    }
     function currentPath() {
+        if (forLock) return LockscreenService.wallpaper();
         return WallpaperService.current(target === "*" ? (Quickshell.screens[0] ? Quickshell.screens[0].name : "") : target);
     }
     function applyIndex(i) {
         const f = WallpaperService.files[i];
-        if (f) WallpaperService.set(f, target === "*" ? "" : target);
+        if (f) win.choose(f);
     }
     // files arrive after the async scan: land on the current wallpaper once
     Connections {
@@ -58,12 +66,12 @@ PanelWindow {
         Row {
             id: head
             x: 18; y: 14; width: parent.width - 36; height: 30; spacing: 8
-            Text { text: "Wallpapers"; color: Theme.text; anchors.verticalCenter: parent.verticalCenter
+            Text { text: win.forLock ? "Lock screen wallpaper" : "Wallpapers"; color: Theme.text; anchors.verticalCenter: parent.verticalCenter
                 font.family: Theme.font; font.pixelSize: Theme.fontLarge; font.bold: true }
             Item { width: 10; height: 1 }
             // target chips: All + one per monitor
             Repeater {
-                model: [{ n: "*", l: "All monitors" }].concat(Quickshell.screens.map(s => ({ n: s.name, l: s.name })))
+                model: win.forLock ? [] : [{ n: "*", l: "All monitors" }].concat(Quickshell.screens.map(s => ({ n: s.name, l: s.name })))
                 delegate: Rectangle {
                     required property var modelData
                     readonly property bool on: win.target === modelData.n
@@ -84,7 +92,7 @@ PanelWindow {
         }
         // wallpaper-derived theming toggle
         Rectangle {
-            visible: ThemeService.available
+            visible: ThemeService.available && !win.forLock
             anchors { right: parent.right; rightMargin: 18; top: parent.top; topMargin: 16 }
             height: 26; width: tl.implicitWidth + 24; radius: 13
             color: Settings.wallpaperTheming ? Theme.accent : Theme.surfaceAlt
@@ -140,7 +148,7 @@ PanelWindow {
                     Rectangle { anchors.fill: parent; radius: Theme.radius; color: Theme.hover; visible: pm.containsMouse }
                     MouseArea { id: pm; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
                         onEntered: grid.currentIndex = index
-                        onClicked: WallpaperService.set(modelData, win.target === "*" ? "" : win.target) }
+                        onClicked: win.choose(modelData) }
                 }
             }
             Text {

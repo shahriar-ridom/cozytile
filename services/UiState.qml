@@ -12,6 +12,7 @@ Singleton {
     property real searchX: 0              // left edge of the Search cap, screen px
     property bool power: false
     property bool wallpaper: false
+    property string wallpaperFor: ""     // "" = desktop wallpaper, "lock" = pick the lock screen image
     property bool audioPicker: false
     property bool settings: false
     property string settingsPage: ""      // requested settings page (by name); the panel clears it
@@ -42,7 +43,7 @@ Singleton {
         closeAll();
         islandOpenOn = was ? "" : n;
     }
-    function closeAll() { islandOpenOn = ""; launcher = false; search = false; power = false; wallpaper = false; audioPicker = false; settings = false; statPopup = ""; globalMenuIndex = -1; }
+    function closeAll() { islandOpenOn = ""; launcher = false; search = false; power = false; wallpaper = false; wallpaperFor = ""; audioPicker = false; settings = false; statPopup = ""; globalMenuIndex = -1; }
     // open the dropdown under the bar's Search cap; x = cap's left edge in screen px
     function toggleSearch(x) {
         const was = search;
@@ -54,6 +55,8 @@ Singleton {
         closeAll();
         if (!was) { statPopupX = x; statPopup = kind; }
     }
+    // open the wallpaper picker for the desktop ("") or the lock screen ("lock")
+    function pickWallpaper(forWhat) { closeAll(); wallpaperFor = forWhat; wallpaper = true; }
     // Opening one overlay closes the others.
     function toggle(which) {
         const was = root[which];

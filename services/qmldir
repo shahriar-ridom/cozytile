@@ -16,3 +16,4 @@ singleton PrivacyService 1.0 PrivacyService.qml
 singleton HyprConfigService 1.0 HyprConfigService.qml
 singleton NightLightService 1.0 NightLightService.qml
 singleton GlobalMenuService 1.0 GlobalMenuService.qml
+singleton LockscreenService 1.0 LockscreenService.qml
