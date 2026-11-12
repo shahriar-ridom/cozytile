@@ -13,7 +13,7 @@ Cozytile is a Hyprland desktop built on **Quickshell** (QML): top bar, dynamic i
 - Full desktop: `./setup.sh [--dry-run] [--packages] [--sddm] [--theme NAME]`. It is safe to re-run, and it backs up anything it replaces as `*.bak-<timestamp>`. `./rollback.sh` and `./uninstall.sh [--purge]` undo it.
 - Start the installed shell: `scripts/launch.sh` (wraps `qs -c cozytile` with transparent huge pages disabled).
 - Lint QML: `qmllint <files>`. Quickshell's own logs are in `/run/user/$UID/quickshell/by-id/*/log.qslog`. A QML error in any file makes the **whole** config fail to load ("Failed to load configuration"), so always launch it once after changing QML.
-- Control the running shell: `qs -c cozytile ipc call <target> <function>`. The targets are the `IpcHandler` blocks in `shell.qml` (launcher, search, notifications, island, timer, clock, keys, power, settings, wallpaper, workspace, theme, nightlight, audio, brightness, frost). Hyprland keybinds call these (`dotfiles/hypr/config/binds.lua`).
+- Control the running shell: `qs -c cozytile ipc call <target> <function>`. The targets are the `IpcHandler` blocks in `shell.qml` (launcher, search, notifications, island, timer, clock, keys, power, settings, wallpaper, workspace, theme, nightlight, audio, brightness, frost, stage). Hyprland keybinds call these (`dotfiles/hypr/config/binds.lua`).
 - Re-render themed dotfiles: `dotfiles/theme-apply.sh <theme>`.
 
 ### Testing a visual change without touching the live shell

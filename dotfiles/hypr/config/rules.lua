@@ -13,7 +13,7 @@
 
 hl.layer_rule({
 	name = "cozytile-blur",
-	match = { namespace = "^cozytile-(bar|island|launcher|power|wallpaper|audio|logomenu|globalmenu|stats|settings|osd|search|notifications|notification-center)$" },
+	match = { namespace = "^cozytile-(bar|island|launcher|power|wallpaper|audio|logomenu|globalmenu|stats|settings|osd|search|notifications|notification-center|overview)$" },
 	blur = true,
 	blur_popups = true,
 	ignore_alpha = 0.4,

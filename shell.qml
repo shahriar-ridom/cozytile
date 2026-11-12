@@ -2,6 +2,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Quickshell.Hyprland
 import "config"
 import "services"
 import "modules/bar"
@@ -13,10 +14,14 @@ import "modules/audio"
 import "modules/power"
 import "modules/settings"
 import "modules/wallpaper"
+import "modules/stage"
 
 ShellRoot {
     // singletons load lazily; WallpaperService restores the saved wallpaper on creation; night light must run its schedule from startup
-    Component.onCompleted: { NightLightService.tick(); RecentService.maxApps; FrostService.enabled; WallpaperService.files; }  // touch: starts recording opened apps
+    Component.onCompleted: { NightLightService.tick(); RecentService.maxApps; FrostService.enabled; WallpaperService.files; StageService.rev; }  // touch: starts recording opened apps
+
+    // instant keybind: a Hyprland global shortcut (no `qs ipc` process to spawn, which costs ~300 ms)
+    GlobalShortcut { appid: "cozytile"; name: "overview"; description: "Toggle the desktop overview"; onPressed: UiState.toggle("overview") }
 
     // ---- keybind entry points: `qs -c cozytile ipc call <target> <function>` ----
     IpcHandler {
@@ -101,6 +106,28 @@ ShellRoot {
         function prev(): void { HyprlandService.stepWorkspace(-1); }
     }
     IpcHandler {
+        target: "stage"
+        function toggle(): void { StageService.setEnabled(!StageService.enabled); }
+        // bird's-eye overview of all desktops and windows (keybind, or hover the screen edge)
+        function overview(): void { UiState.toggle("overview"); }
+        function create(name: string): void { StageService.activate(StageService.create(name, "")); }
+        function switchTo(name: string): bool {
+            const q = name.toLowerCase();
+            const s = StageService.stages.find(x => x.name.toLowerCase() === q || x.id === name);
+            if (!s) return false;
+            StageService.activate(s.id);
+            return true;
+        }
+        function goto(n: int): void { StageService.activateIndex(n - 1); }
+        function next(): void { StageService.cycle(1); }
+        function prev(): void { StageService.cycle(-1); }
+        function moveWindow(n: int): void { const s = StageService.stages[n - 1]; if (s) StageService.moveFocused(s.id); }
+        function rename(from: string, to: string): void { const s = StageService.stages.find(x => x.name === from); if (s) StageService.rename(s.id, to); }
+        function remove(name: string): void { const s = StageService.stages.find(x => x.name === name); if (s) StageService.remove(s.id); }
+        function rule(cls: string, stage: string): void { const s = StageService.stages.find(x => x.name === stage); if (s) StageService.addRule(cls, s.id); }
+        function list(): string { return StageService.stages.map(s => (s.id === StageService.activeId ? "* " : "  ") + s.id + " " + s.name + " (" + StageService.windows(s.id).length + ")").join("\n"); }
+    }
+    IpcHandler {
         target: "theme"
         function next(): void { Theme.next(); }
         function set(name: string): void { Theme.apply(name); }
@@ -153,6 +180,12 @@ ShellRoot {
         Island { required property var modelData; screen: modelData }
     }
 
+    // ---- hot edge: hovering the screen edge opens the overview ----
+    Variants {
+        model: Quickshell.screens
+        StageEdge { required property var modelData; screen: modelData }
+    }
+
     // ---- desktop clock (one per screen, behind all windows) ----
     Variants {
         model: Quickshell.screens
@@ -177,6 +210,8 @@ ShellRoot {
         StatPopup { id: statW; Component.onCompleted: statL.held = Qt.binding(() => statW.visible) } }
     LazyLoader { id: settingsL; property bool held: false; active: UiState.settings || held
         SettingsPanel { id: settingsW; Component.onCompleted: settingsL.held = Qt.binding(() => settingsW.visible) } }
+    // the overview stays loaded (hidden when closed) so opening it is instant
+    Overview {}
     LazyLoader { id: powerL; property bool held: false; active: UiState.power || held
         PowerMenu { id: powerW; Component.onCompleted: powerL.held = Qt.binding(() => powerW.visible) } }
     LazyLoader { id: wallpaperL; property bool held: false; active: UiState.wallpaper || held

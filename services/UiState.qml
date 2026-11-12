@@ -29,6 +29,7 @@ Singleton {
     // logo dropdown under the bar's logo, anchored at its left edge (screen px)
     property bool logoMenu: false
     property real logoMenuX: 0
+    property bool overview: false         // Mission Control style overview of every desktop and window
     property string islandOpenOn: ""      // name of the screen whose island is expanded
 
     readonly property var focusedScreen: {
@@ -46,7 +47,7 @@ Singleton {
         closeAll();
         islandOpenOn = was ? "" : n;
     }
-    function closeAll() { islandOpenOn = ""; launcher = false; search = false; power = false; wallpaper = false; wallpaperFor = ""; audioPicker = false; settings = false; statPopup = ""; globalMenuIndex = -1; logoMenu = false; }
+    function closeAll() { overview = false; islandOpenOn = ""; launcher = false; search = false; power = false; wallpaper = false; wallpaperFor = ""; audioPicker = false; settings = false; statPopup = ""; globalMenuIndex = -1; logoMenu = false; }
     function toggleLogoMenu(x) {
         const was = logoMenu;
         closeAll();

@@ -35,6 +35,7 @@ Singleton {
     property alias nightLight: adapter.nightLight
     property alias lockscreen: adapter.lockscreen
     property alias desktopClock: adapter.desktopClock
+    property alias stage: adapter.stage
     property alias uiFont: adapter.uiFont
     property alias monoFont: adapter.monoFont
     property alias frostedGlass: adapter.frostedGlass
@@ -96,6 +97,8 @@ Singleton {
             // clock: large|medium|small; font: sans|rounded|mono; blur 0-5 passes; dim = brightness %
             property var lockscreen: ({ wallpaper: "", blur: 3, dim: 70, clock: "large", font: "sans", hour24: true, seconds: false, showDate: true, showStatus: true, showUser: true, showAvatar: true, hint: "Enter password" })
             // clock drawn on the desktop (modules/clock): see DesktopClockService for the keys
+            // Stage window groups: see services/StageService.qml (empty = defaults)
+            property var stage: ({})
             property var desktopClock: ({ enabled: true, style: "minimal", position: "center", size: "medium", hour24: false, seconds: false, showDate: true })
             // system-wide typefaces; "" = the Cozytile defaults (SF Pro Text / CaskaydiaCove Nerd Font Mono)
             property string uiFont: ""

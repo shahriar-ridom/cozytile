@@ -14,3 +14,4 @@ PageAutostart 1.0 PageAutostart.qml
 PagePower 1.0 PagePower.qml
 PageGeneral 1.0 PageGeneral.qml
 PageAbout 1.0 PageAbout.qml
+PageStage 1.0 PageStage.qml

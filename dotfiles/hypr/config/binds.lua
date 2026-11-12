@@ -138,7 +138,17 @@ for i = 1, 10 do
 	hl.bind(Mod .. " + SHIFT + " .. key, hl.dsp.window.move({ workspace = i }))
 end
 
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+-- Stage: Mission Control style overview (workspaces are the desktops)
 --------------------------------------------------------------------------------
+
+-- global shortcut (registered by the shell): no process to spawn, so it opens at once
+hl.bind(Mod .. " + TAB", hl.dsp.global("cozytile:overview"))
+hl.bind(Mod .. " + ALT + S", hl.dsp.global("cozytile:overview"))
+hl.bind(Mod .. " + CTRL + TAB", hl.dsp.exec_cmd(qs .. "stage next"))
+hl.bind(Mod .. " + CTRL + SHIFT + TAB", hl.dsp.exec_cmd(qs .. "stage prev"))
+
+-----
 -- Audio & Brightness (the island shows the feedback)
 --------------------------------------------------------------------------------
 

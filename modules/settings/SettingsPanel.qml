@@ -31,6 +31,7 @@ PanelWindow {
         { name: "General",    icon: "", file: "PageGeneral.qml",    group: "Shell" },
         { name: "Display",    icon: "", file: "PageDisplay.qml",    group: "System" },
         { name: "Windows",    icon: "", file: "PageWindows.qml",    group: "System" },
+        { name: "Stage",      icon: "", file: "PageStage.qml",      group: "System" },
         { name: "Input",      icon: "", file: "PageInput.qml",      group: "System" },
         { name: "Autostart",  icon: "", file: "PageAutostart.qml",  group: "System" },
         { name: "Power & idle", icon: "", file: "PagePower.qml",    group: "System" },
