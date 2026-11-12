@@ -6,6 +6,7 @@ import "config"
 import "services"
 import "modules/bar"
 import "modules/launcher"
+import "modules/search"
 import "modules/island"
 import "modules/audio"
 import "modules/power"
@@ -31,6 +32,11 @@ ShellRoot {
             e.execute();
             return true;
         }
+    }
+    IpcHandler {
+        target: "search"
+        function toggle(): void { UiState.toggleSearch(UiState.searchX); }
+        function close(): void { UiState.search = false; }
     }
     IpcHandler {
         target: "notifications"
@@ -136,6 +142,8 @@ ShellRoot {
     // Hidden windows otherwise keep their whole item tree, scene graph and bindings alive.
     LazyLoader { id: launcherL; property bool held: false; active: UiState.launcher || held
         Launcher { id: launcherW; Component.onCompleted: launcherL.held = Qt.binding(() => launcherW.busy) } }
+    LazyLoader { id: searchL; property bool held: false; active: UiState.search || held
+        BarSearch { id: searchW; Component.onCompleted: searchL.held = Qt.binding(() => searchW.busy) } }
     LazyLoader { id: audioL; property bool held: false; active: UiState.audioPicker || held
         AudioPicker { id: audioW; Component.onCompleted: audioL.held = Qt.binding(() => audioW.visible) } }
     LazyLoader { id: statL; property bool held: false; active: UiState.statPopup !== "" || held

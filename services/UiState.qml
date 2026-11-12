@@ -8,6 +8,8 @@ Singleton {
     id: root
     property bool launcher: false
     property string launcherQuery: ""     // pre-fill for the next launcher open
+    property bool search: false           // bar search dropdown (anchored under the Search cap)
+    property real searchX: 0              // left edge of the Search cap, screen px
     property bool power: false
     property bool wallpaper: false
     property bool audioPicker: false
@@ -34,7 +36,13 @@ Singleton {
         closeAll();
         islandOpenOn = was ? "" : n;
     }
-    function closeAll() { islandOpenOn = ""; launcher = false; power = false; wallpaper = false; audioPicker = false; settings = false; statPopup = ""; }
+    function closeAll() { islandOpenOn = ""; launcher = false; search = false; power = false; wallpaper = false; audioPicker = false; settings = false; statPopup = ""; }
+    // open the dropdown under the bar's Search cap; x = cap's left edge in screen px
+    function toggleSearch(x) {
+        const was = search;
+        closeAll();
+        if (!was) { searchX = x; search = true; }
+    }
     function toggleStat(kind, x) {
         const was = statPopup === kind;
         closeAll();

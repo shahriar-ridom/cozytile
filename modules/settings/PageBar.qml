@@ -7,6 +7,16 @@ Column {
     property var panel
     width: parent ? parent.width : 0
 
+    Section { text: "Style" }
+    SettingRow {
+        title: "Bar style"; desc: "One full-width bar, or three floating islands"
+        Segmented {
+            model: [{ label: "Bar", value: "bar" }, { label: "Islands", value: "islands" }]
+            current: Settings.barStyle
+            onPicked: v => Settings.barStyle = v
+        }
+    }
+
     Section { text: "Layout" }
     SettingRow {
         title: "Window title"; desc: "Show the focused window on the left"

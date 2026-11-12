@@ -19,6 +19,7 @@ Singleton {
     property alias dnd: adapter.dnd
     property alias baseTheme: adapter.baseTheme
     property alias showWindowTitle: adapter.showWindowTitle
+    property alias barStyle: adapter.barStyle
     property alias timerEnd: adapter.timerEnd
     property alias timerTotal: adapter.timerTotal
     property alias timerLabel: adapter.timerLabel
@@ -60,6 +61,8 @@ Singleton {
             property int osdTimeout: 1600
             property bool showWorkspaceNumbers: false
             property bool dnd: false
+            // bar look: "bar" (one full-width bar) or "islands" (three floating pills)
+            property string barStyle: "bar"
             // active window title on the left of the bar (off: calmer bar, the island owns the centre)
             property bool showWindowTitle: false
             // running timer survives shell restarts (epoch ms; 0 = none)

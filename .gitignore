@@ -1,2 +1,3 @@
 *.bak*
 dotfiles/hypr/config/local.lua
+FEATURES.md

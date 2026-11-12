@@ -64,6 +64,11 @@ PanelWindow {
     Behavior on peek { NumberAnimation { duration: Theme.animSlow + 60; easing.type: Easing.OutBack; easing.overshoot: 0.8 } }
     readonly property real pk: Math.max(0, Math.min(1, peek))
     readonly property real shapeP: Math.max(pc, pk)
+    // outline: S-curved sides on the full-width bar, a plain rounded pill in the floating-islands style
+    readonly property bool floating: Settings.barStyle === "islands"
+    readonly property real shapeS: floating ? 0 : Theme.edgeSlant * (1 - shapeP)
+    readonly property real shapeRT: floating ? 15 - 3 * shapeP : 0.01 + 12 * shapeP
+    readonly property real shapeRB: floating ? 15 + (pk > pc ? 3 : 5) * shapeP : 0.01 + (pk > pc ? 18 : 20) * shapeP
     readonly property int peekW: Math.min(Theme.islandExpandedWidth - 40, Math.max(300, maxW + 40))
     property int peekH: Math.round(peekCard.implicitHeight + 24)
     Behavior on peekH { enabled: win.pk > 0.99; NumberAnimation { duration: Theme.animNormal; easing.type: Easing.OutCubic } }
@@ -108,6 +113,36 @@ PanelWindow {
              + `C ${s} ${yb * 0.45} 0 ${yb * 0.55} 0 ${rt} A ${rt} ${rt} 0 0 1 ${rt} 0 Z`;
     }
 
+    // Sonner-style stack: queued activities sit behind the front pill as smaller, dimmer layers,
+    // each one peeking out below. They promote forward as the front one expires.
+    Repeater {
+        model: 3
+        delegate: Shape {
+            id: layer
+            required property int index
+            readonly property int depth: index + 1
+            readonly property var queued: win.expanded ? null : (ActivityService.items.length > depth ? ActivityService.items[depth] : null)
+            property var lastQueued: null
+            onQueuedChanged: if (queued) lastQueued = queued
+            property real shown: queued ? 1 : 0
+            Behavior on shown { NumberAnimation { duration: Theme.animNormal; easing.type: Easing.OutCubic } }
+            readonly property color tone: lastQueued ? ActivityService.toneColor(lastQueued.tone) : Theme.accent
+            z: -depth
+            visible: shown > 0.01
+            preferredRendererType: Shape.CurveRenderer
+            width: body.width * (1 - 0.07 * depth * shown)
+            height: body.height
+            x: body.x + (body.width - width) / 2
+            y: body.y + 7 * depth * shown
+            opacity: shown * (1 - 0.28 * depth)
+            ShapePath {
+                strokeWidth: -1
+                fillColor: Qt.tint(Theme.barCap, Qt.rgba(layer.tone.r, layer.tone.g, layer.tone.b, 0.16))
+                PathSvg { path: win.outline(layer.width, layer.height, win.shapeS, win.shapeRT, win.shapeRB) }
+            }
+        }
+    }
+
     Item {
         id: body
         x: (win.width - width) / 2
@@ -120,12 +155,12 @@ PanelWindow {
         // soft shadow only once expanded
         RectangularShadow {
             anchors.fill: parent
-            radius: 18 * win.shapeP
+            radius: win.floating ? win.shapeRB : 18 * win.shapeP
             blur: Theme.shadowRadius + 6
             offset.y: 3
             color: Theme.shadow
-            opacity: win.shapeP
-            visible: win.shapeP > 0.02
+            opacity: win.floating ? 1 : win.shapeP
+            visible: win.floating || win.shapeP > 0.02
         }
         Shape {
             anchors.fill: parent
@@ -133,7 +168,7 @@ PanelWindow {
             ShapePath {
                 strokeWidth: -1
                 fillColor: win.capColor
-                PathSvg { path: win.outline(body.width, body.height, Theme.edgeSlant * (1 - win.shapeP), 0.01 + 12 * win.shapeP, 0.01 + (win.pk > win.pc ? 18 : 20) * win.shapeP) }
+                PathSvg { path: win.outline(body.width, body.height, win.shapeS, win.shapeRT, win.shapeRB) }
             }
         }
 

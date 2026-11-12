@@ -34,9 +34,21 @@ Singleton {
         it.expires = it.sticky ? 0 : now + it.ms;
         const rest = items.filter(i => i.key !== key);
         rest.push(it);
-        rest.sort((a, b) => b.priority - a.priority || b.t - a.t);
+        rest.sort(_order);
         items = rest;
         _schedule();
+    }
+
+    // Stack order, front first. Urgent items (alarm, low battery, levels) lead by priority. The rest
+    // go by deadline: held items first (the user is touching them), then whichever expires soonest,
+    // so the front card is always the next one to leave and the stack drains front to back.
+    readonly property int urgent: 60
+    function _order(a, b) {
+        const ua = a.priority >= urgent, ub = b.priority >= urgent;
+        if (ua !== ub) return ua ? -1 : 1;
+        if (ua) return b.priority - a.priority || b.t - a.t;
+        if (a.sticky !== b.sticky) return a.sticky ? -1 : 1;
+        return a.expires - b.expires || b.t - a.t;
     }
     function dismiss(key) { if (items.some(i => i.key === key)) { items = items.filter(i => i.key !== key); _schedule(); } }
 
@@ -45,7 +57,7 @@ Singleton {
         const it = items.find(i => i.key === key);
         if (!it || it.sticky === on) return;
         const now = Date.now();
-        items = items.map(i => i.key === key ? Object.assign({}, i, { sticky: on, expires: on ? 0 : now + 2500 }) : i);
+        items = items.map(i => i.key === key ? Object.assign({}, i, { sticky: on, expires: on ? 0 : now + 2500 }) : i).sort(_order);
         _schedule();
     }
 
@@ -69,6 +81,8 @@ Singleton {
         let next = 0;
         const live = items.filter(i => i.sticky || i.expires > now);
         if (live.length !== items.length) items = live;
+        live.sort(_order);
+        if (live.some((it, n) => it !== items[n])) items = live;
         for (const i of live) if (!i.sticky && (next === 0 || i.expires < next)) next = i.expires;
         if (next > 0) { expiry.interval = Math.max(30, next - now); expiry.restart(); } else expiry.stop();
     }
