@@ -198,10 +198,25 @@ was changed here; click it to go back to the config value. Idle timeouts are wri
 Settings are saved to `~/.local/state/cozytile/settings.json` and reload live. You can change:
 
 `theme`, `syncDotfiles`, `wallpaperDirs`, `wallpapers`, `wallpaperTheming`, `osdTimeout` (ms), `showWorkspaceNumbers`,
-`showWindowTitle`, `dnd` (Do-Not-Disturb), `showTemp`, `statsInterval` (ms). The settings app also stores `hypr`
+`showWindowTitle`, `globalMenu`, `dnd` (Do-Not-Disturb), `showTemp`, `statsInterval` (ms). The settings app also stores `hypr`
 (Hyprland option overrides), `monitors`, `autostart` and `idle` here; edits to those take effect when the shell restarts.
 
 Design tokens such as fonts, bar height, margins, radii, and animation timings are in `config/Theme.qml`.
+
+### Global menu
+
+With `globalMenu` on (Settings → Bar → Global menu), the left of the bar shows the focused app's menus, like macOS.
+Titles that don't fit collapse behind a » button that lists the rest. `scripts/globalmenu.py` (python3 + PyGObject)
+registers as the session's `com.canonical.AppMenu.Registrar` and bridges each app's `dbusmenu`; it only runs while the
+setting is on, and doesn't start if another registrar already owns the bus name.
+
+Hyprland cannot export menus from native-Wayland windows, so apps must run through XWayland to show theirs.
+`scripts/menu-launchers.sh` writes launcher overrides to `~/.local/share/applications` for Dolphin, LibreWolf and Zen
+(plus Thunar and GIMP when `appmenu-gtk-module` is installed); `--remove` undoes it. Start those apps from the launcher
+or desktop entry, or set the variables listed in the script yourself. Firefox-family browsers also need
+`widget.gtk.global-menu.enabled` set to true in the profile (`user.js`). Only apps started after the shell is running
+export a menu. Apps that never export one show nothing: kitty has no global-menu support on Linux, and Chrome did not
+register a menu in testing.
 
 ### Adding a theme
 

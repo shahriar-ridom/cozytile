@@ -17,7 +17,7 @@ hl.bind(Mod .. " + Return", hl.dsp.exec_cmd("kitty --class kitty"))
 
 hl.bind(Mod .. " + SHIFT + Return", hl.dsp.exec_cmd("kitty --class kitty-floating"))
 
-hl.bind(Mod .. " + B", hl.dsp.exec_cmd("zen-browser"))
+hl.bind(Mod .. " + B", hl.dsp.exec_cmd("env MOZ_ENABLE_WAYLAND=0 GDK_BACKEND=x11 zen-browser"))
 
 hl.bind(Mod .. " + E", hl.dsp.exec_cmd("luma"))
 

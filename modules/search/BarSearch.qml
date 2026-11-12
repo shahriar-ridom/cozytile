@@ -25,8 +25,8 @@ PanelWindow {
     WlrLayershell.keyboardFocus: UiState.search ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
     readonly property string home: Quickshell.env("HOME")
-    readonly property int maxListH: 340
-    readonly property int fieldH: 46
+    readonly property int maxListH: 300
+    readonly property int fieldH: 36
     property string query: ""
     property int index: 0
     property string selKey: ""
@@ -213,17 +213,20 @@ PanelWindow {
     // invisible: click outside closes, nothing is dimmed
     MouseArea { anchors.fill: parent; acceptedButtons: Qt.AllButtons; onClicked: win.close() }
 
+    // sibling of the card: inside it the card's clip would cut the shadow off
+    Shadowed { target: card; z: 0; radius: Theme.radius + 2; opacity: card.opacity; scale: card.scale; transformOrigin: Item.Top }
+
     Rectangle {
         id: card
+        z: 1
         readonly property int listH: win.built.height > 0 ? Math.min(win.maxListH, win.built.height) + 14 : 0
-        width: Math.min(460, parent.width - 16)
+        width: Math.min(320, parent.width - 16)
         height: win.fieldH + listH + (listH > 0 ? 1 : 0)
         x: Math.max(8, Math.min(parent.width - width - 8, UiState.searchX))
-        y: Theme.barMarginTop + Theme.barHeight - 1       // hangs flush from the bar
+        y: Theme.barMarginTop + Theme.barHeight - 1       // hangs flush from the bar, same tone
         topLeftRadius: 0; topRightRadius: 0
-        bottomLeftRadius: Theme.radius + 8; bottomRightRadius: Theme.radius + 8
-        color: Theme.launcherBg
-        border.width: 1; border.color: Theme.border
+        bottomLeftRadius: Theme.radius + 2; bottomRightRadius: Theme.radius + 2
+        color: Theme.barCap
         clip: true
         opacity: win.shown ? 1 : 0
         transformOrigin: Item.Top
@@ -233,25 +236,24 @@ PanelWindow {
         Behavior on height { NumberAnimation { duration: Theme.animNormal; easing.type: Easing.OutCubic } }
         MouseArea { anchors.fill: parent }          // swallow clicks
 
-        Shadowed { target: card; z: -1 }
 
         Item {
             id: field
             anchors { top: parent.top; left: parent.left; right: parent.right }
             height: win.fieldH
             Glyph {
-                x: 18; anchors.verticalCenter: parent.verticalCenter
-                text: ""; size: 14
+                x: 14; anchors.verticalCenter: parent.verticalCenter
+                text: ""; size: 12
                 color: input.text.length ? Theme.accent : Theme.textMuted
                 Behavior on color { ColorAnimation { duration: Theme.animNormal } }
             }
             TextInput {
                 id: input
-                anchors { left: parent.left; right: parent.right; leftMargin: 46; rightMargin: 18; verticalCenter: parent.verticalCenter }
+                anchors { left: parent.left; right: parent.right; leftMargin: 36; rightMargin: 14; verticalCenter: parent.verticalCenter }
                 color: Theme.text
                 selectionColor: Theme.accent
                 selectedTextColor: Theme.barCap
-                font.family: Theme.font; font.pixelSize: 16
+                font.family: Theme.font; font.pixelSize: 14
                 clip: true
                 onTextChanged: { win.selKey = ""; win.query = text; debounce.restart(); }
                 Keys.onEscapePressed: win.close()
@@ -279,7 +281,7 @@ PanelWindow {
         Rectangle {
             id: divider
             visible: card.listH > 0
-            anchors { top: field.bottom; left: parent.left; right: parent.right; leftMargin: 14; rightMargin: 14 }
+            anchors { top: field.bottom; left: parent.left; right: parent.right; leftMargin: 10; rightMargin: 10 }
             height: 1
             color: Theme.slash
         }
@@ -287,7 +289,7 @@ PanelWindow {
         ListView {
             id: list
             visible: card.listH > 0
-            anchors { top: divider.bottom; left: parent.left; right: parent.right; margins: 6; topMargin: 6 }
+            anchors { top: divider.bottom; left: parent.left; right: parent.right; margins: 4; topMargin: 4 }
             height: card.listH - 14
             clip: true
             model: win.rows

@@ -67,8 +67,8 @@ PanelWindow {
     // outline: S-curved sides on the full-width bar, a plain rounded pill in the floating-islands style
     readonly property bool floating: Settings.barStyle === "islands"
     readonly property real shapeS: floating ? 0 : Theme.edgeSlant * (1 - shapeP)
-    readonly property real shapeRT: floating ? 15 - 3 * shapeP : 0.01 + 12 * shapeP
-    readonly property real shapeRB: floating ? 15 + (pk > pc ? 3 : 5) * shapeP : 0.01 + (pk > pc ? 18 : 20) * shapeP
+    readonly property real shapeRT: floating ? Theme.barRadius - 2 * shapeP : 0.01 + 12 * shapeP
+    readonly property real shapeRB: floating ? Theme.barRadius + (pk > pc ? 2 : 4) * shapeP : 0.01 + (pk > pc ? 18 : 20) * shapeP
     readonly property int peekW: Math.min(Theme.islandExpandedWidth - 40, Math.max(300, maxW + 40))
     property int peekH: Math.round(peekCard.implicitHeight + 24)
     Behavior on peekH { enabled: win.pk > 0.99; NumberAnimation { duration: Theme.animNormal; easing.type: Easing.OutCubic } }

@@ -19,6 +19,11 @@ Column {
 
     Section { text: "Layout" }
     SettingRow {
+        title: "Global menu"; desc: "Show the focused app's menus (File, Edit, ...) in the bar, like macOS"
+        Toggle { checked: Settings.globalMenu; onToggled: v => Settings.globalMenu = v }
+    }
+    Divider {}
+    SettingRow {
         title: "Window title"; desc: "Show the focused window on the left"
         Toggle { checked: Settings.showWindowTitle; onToggled: v => Settings.showWindowTitle = v }
     }

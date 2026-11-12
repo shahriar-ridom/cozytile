@@ -144,6 +144,8 @@ ShellRoot {
         Launcher { id: launcherW; Component.onCompleted: launcherL.held = Qt.binding(() => launcherW.busy) } }
     LazyLoader { id: searchL; property bool held: false; active: UiState.search || held
         BarSearch { id: searchW; Component.onCompleted: searchL.held = Qt.binding(() => searchW.busy) } }
+    LazyLoader { id: gmenuL; property bool held: false; active: UiState.globalMenuOpen || held
+        GlobalMenuPopup { id: gmenuW; Component.onCompleted: gmenuL.held = Qt.binding(() => gmenuW.busy) } }
     LazyLoader { id: audioL; property bool held: false; active: UiState.audioPicker || held
         AudioPicker { id: audioW; Component.onCompleted: audioL.held = Qt.binding(() => audioW.visible) } }
     LazyLoader { id: statL; property bool held: false; active: UiState.statPopup !== "" || held

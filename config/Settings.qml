@@ -20,6 +20,7 @@ Singleton {
     property alias baseTheme: adapter.baseTheme
     property alias showWindowTitle: adapter.showWindowTitle
     property alias barStyle: adapter.barStyle
+    property alias globalMenu: adapter.globalMenu
     property alias timerEnd: adapter.timerEnd
     property alias timerTotal: adapter.timerTotal
     property alias timerLabel: adapter.timerLabel
@@ -65,6 +66,8 @@ Singleton {
             property string barStyle: "bar"
             // active window title on the left of the bar (off: calmer bar, the island owns the centre)
             property bool showWindowTitle: false
+            // macOS-style global menu: the focused app's menus (File, Edit, ...) on the left of the bar
+            property bool globalMenu: true
             // running timer survives shell restarts (epoch ms; 0 = none)
             property real timerEnd: 0
             property int timerTotal: 0

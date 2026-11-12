@@ -15,3 +15,4 @@ singleton LockKeysService 1.0 LockKeysService.qml
 singleton PrivacyService 1.0 PrivacyService.qml
 singleton HyprConfigService 1.0 HyprConfigService.qml
 singleton NightLightService 1.0 NightLightService.qml
+singleton GlobalMenuService 1.0 GlobalMenuService.qml

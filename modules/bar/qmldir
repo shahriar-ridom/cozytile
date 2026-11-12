@@ -9,3 +9,6 @@ NetworkItem 1.0 NetworkItem.qml
 BatteryItem 1.0 BatteryItem.qml
 SystemTray 1.0 SystemTray.qml
 StatPopup 1.0 StatPopup.qml
+GlobalMenu 1.0 GlobalMenu.qml
+GlobalMenuPopup 1.0 GlobalMenuPopup.qml
+MenuList 1.0 MenuList.qml

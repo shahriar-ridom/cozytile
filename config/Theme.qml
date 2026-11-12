@@ -87,6 +87,8 @@ Singleton {
     readonly property int barMarginTop: 8
     readonly property int barMarginSide: 40
     readonly property int barMarginBottom: 6
+    readonly property int barPad: 16             // transparent room around the bar window so shadows are not clipped
+    readonly property int barOriginX: barMarginSide - barPad   // screen x of the bar window's left edge
     readonly property int barRadius: 10          // outer corners of the bar
     readonly property int edgeSlant: 9           // horizontal travel of slash / S-curve separators
     readonly property int gap: 8

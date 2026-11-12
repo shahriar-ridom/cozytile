@@ -10,25 +10,29 @@ PanelWindow {
     id: win
 
     anchors { top: true; left: true; right: true }
-    margins { top: Theme.barMarginTop; left: Theme.barMarginSide; right: Theme.barMarginSide }
-    implicitHeight: Theme.barHeight + 16
+    margins { top: 0; left: Theme.barOriginX; right: Theme.barOriginX }
+    implicitHeight: Theme.barMarginTop + Theme.barHeight + Theme.barPad
     // floating style: three detached pills (left / island / right) instead of one full-width bar
     readonly property bool floating: Settings.barStyle === "islands"
     mask: Region { item: win.floating ? leftPill : bar; regions: [ Region { item: rightPill } ] }
-    exclusiveZone: Theme.barHeight + Theme.barMarginBottom
+    exclusiveZone: Theme.barMarginTop + Theme.barHeight + Theme.barMarginBottom
     color: "transparent"
     WlrLayershell.namespace: "cozytile-bar"
     WlrLayershell.layer: WlrLayer.Top
 
     // Responsive levels: shed optional pieces as the bar narrows.
-    readonly property int w: width
+    readonly property int w: width - 2 * Theme.barPad
     readonly property bool wide: w >= 1500      // + network and temperature
     readonly property bool medium: w >= 1150    // + search cap, CPU/RAM
     readonly property int islandMax: Math.round(Math.max(200, Math.min(Theme.islandMaxWidth, w * 0.28)))
 
+    // room for the global menu: from the end of the Search cap to the island, minus its own padding
+    readonly property real menuBudget: Math.max(60, (win.w - win.islandMax) / 2 - 16 - 2 * menuSeg.padding
+        - (logoSeg.width + 4 + wsSeg.width + (leftSlash.visible ? leftSlash.width : 0) + (searchSeg.visible ? searchSeg.width : 0)))
+
     Item {
         id: bar
-        anchors { top: parent.top; left: parent.left; right: parent.right }
+        anchors { top: parent.top; left: parent.left; right: parent.right; topMargin: Theme.barMarginTop; leftMargin: Theme.barPad; rightMargin: Theme.barPad }
         height: Theme.barHeight
 
         // Base tone, full width. Caps sit on top of it.
@@ -47,7 +51,7 @@ PanelWindow {
             id: leftPill
             visible: win.floating
             x: left.x; width: left.width; height: parent.height
-            radius: height / 2
+            radius: Theme.barRadius
             color: Theme.barCap
             Behavior on color { ColorAnimation { duration: Theme.animNormal } }
             Shadowed { target: leftPill; z: -1 }
@@ -56,7 +60,7 @@ PanelWindow {
             id: rightPill
             visible: win.floating
             x: right.x; width: right.width; height: parent.height
-            radius: height / 2
+            radius: Theme.barRadius
             color: Theme.barCap
             Behavior on color { ColorAnimation { duration: Theme.animNormal } }
             Shadowed { target: rightPill; z: -1 }
@@ -75,6 +79,7 @@ PanelWindow {
             anchors.left: parent.left
             height: parent.height
             Segment {
+                id: logoSeg
                 leftEdge: win.floating ? "none" : "round"; rightEdge: win.floating ? "none" : "curve"; padding: 14
                 tone: win.floating ? "transparent" : Theme.barCap
                 Item {
@@ -89,12 +94,14 @@ PanelWindow {
             }
             Item { width: 4; height: 1 }
             Segment {
+                id: wsSeg
                 tone: win.floating ? "transparent" : Theme.barMid; padding: 6
                 WorkspaceIndicator { screen: win.screen; anchors.verticalCenter: parent.verticalCenter }
             }
-            Slash { visible: win.medium && !win.floating }
+            Slash { id: leftSlash; visible: win.medium && !win.floating }
             // Search cap: dark piece with S-curved ends, drops a search field beneath it
             Segment {
+                id: searchSeg
                 visible: win.medium
                 leftEdge: win.floating ? "none" : "curve"; rightEdge: win.floating ? "none" : "curve"; padding: 14
                 tone: win.floating ? "transparent" : Theme.barCap
@@ -107,8 +114,15 @@ PanelWindow {
                         Text { text: "Search"; color: Theme.barText; anchors.verticalCenter: parent.verticalCenter
                             font.family: Theme.font; font.pixelSize: Theme.fontSize; font.bold: true }
                     }
-                    HoverArea { anchors.fill: parent; anchors.margins: -6; highlight: false; onClicked: UiState.toggleSearch(searchCap.mapToItem(null, -14, 0).x + Theme.barMarginSide) }
+                    HoverArea { anchors.fill: parent; anchors.margins: -6; highlight: false; onClicked: UiState.toggleSearch(searchCap.mapToItem(null, -14, 0).x + Theme.barOriginX) }
                 }
+            }
+            // macOS-style global menu: the focused app's own menus
+            Segment {
+                id: menuSeg
+                visible: Settings.globalMenu && win.medium && GlobalMenuService.hasMenu
+                tone: win.floating ? "transparent" : Theme.barMid; padding: 6
+                GlobalMenu { maxWidth: win.menuBudget; anchors.verticalCenter: parent.verticalCenter }
             }
         }
 

@@ -19,6 +19,12 @@ Singleton {
     // stat popup under the bar: "" | cpu | ram | temp, anchored at popupX (centre, screen px)
     property string statPopup: ""
     property real statPopupX: 0
+    // global menu dropdown: index of the open top-level menu (-1 = closed), anchored at its left edge (screen px)
+    // -2 = the » dropdown listing the titles from globalMenuFrom on
+    property int globalMenuIndex: -1
+    property int globalMenuFrom: 0
+    readonly property bool globalMenuOpen: globalMenuIndex !== -1
+    property real globalMenuX: 0
     property string islandOpenOn: ""      // name of the screen whose island is expanded
 
     readonly property var focusedScreen: {
@@ -36,7 +42,7 @@ Singleton {
         closeAll();
         islandOpenOn = was ? "" : n;
     }
-    function closeAll() { islandOpenOn = ""; launcher = false; search = false; power = false; wallpaper = false; audioPicker = false; settings = false; statPopup = ""; }
+    function closeAll() { islandOpenOn = ""; launcher = false; search = false; power = false; wallpaper = false; audioPicker = false; settings = false; statPopup = ""; globalMenuIndex = -1; }
     // open the dropdown under the bar's Search cap; x = cap's left edge in screen px
     function toggleSearch(x) {
         const was = search;
