@@ -31,3 +31,11 @@ color12 {{blue}}
 color13 {{purple}}
 color14 {{aqua}}
 color15 {{fg}}
+
+# Frosted glass (Settings > Appearance): translucent terminal over the compositor blur
+{{#if frost}}background_opacity 0.78
+background_blur 32
+background_tint 0.80
+background_tint_gaps 1.0
+{{/if}}{{#unless frost}}background_opacity 1.0
+{{/unless}}

@@ -226,7 +226,7 @@ PanelWindow {
         y: Theme.barMarginTop + Theme.barHeight - 1       // hangs flush from the bar, same tone
         topLeftRadius: 0; topRightRadius: 0
         bottomLeftRadius: Theme.radius + 2; bottomRightRadius: Theme.radius + 2
-        color: Theme.barCap
+        color: Theme.barCapFill
         clip: true
         opacity: win.shown ? 1 : 0
         transformOrigin: Item.Top

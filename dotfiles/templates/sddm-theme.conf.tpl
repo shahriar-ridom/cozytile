@@ -8,3 +8,4 @@ fg2={{fg2}}
 accent={{accent}}
 error={{red}}
 label={{label}}
+frost={{frost_flag}}

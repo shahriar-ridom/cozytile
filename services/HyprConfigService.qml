@@ -215,6 +215,22 @@ Singleton {
         writeLater.restart();
     }
 
+    // ---- frosted glass (Settings.frostedGlass) ----
+    // Window translucency lives in dotfiles/hypr/config/frost.lua and exists only while the setting is on (the
+    // static rules are opaque). The blur settings are left alone, so it is the same light blur you already
+    // have; it is only made sure to be enabled. Loaded after the user's overrides so its rules win.
+    readonly property string frostFile: Quickshell.env("HOME") + "/.config/hypr/config/frost.lua"
+    function frostLua() {
+        return "hl.config(" + toLua({ decoration: { blur: { enabled: true, popups: true, popups_ignorealpha: 0.4 } } }) + ")\n"
+            + "dofile(" + luaStr(frostFile) + ")";
+    }
+    // switched from the settings app / IPC: apply live, persist, or reload to drop the frost block again
+    function applyFrost() {
+        if (Settings.frostedGlass) eval_(frostLua());
+        else reloadAfterWrite = true;
+        writeLater.restart();
+    }
+
     // ---- actions ----
     function reloadHyprland() { Quickshell.execDetached(["hyprctl", "reload"]); }
     function eval_(code) { Quickshell.execDetached(["hyprctl", "eval", code]); }
@@ -264,6 +280,7 @@ Singleton {
             L.push("hl.monitor(" + toLua(rule) + ")");
         }
         if (Object.keys(mons).length) L.push("");
+        if (Settings.frostedGlass) L.push("-- Frosted glass (Settings > Appearance)", frostLua(), "");
         const auto = (root.autostart).filter(a => a && a.enabled && (a.command || "").trim() !== "");
         if (auto.length) {
             L.push("hl.on(\"hyprland.start\", function()");

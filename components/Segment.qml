@@ -6,7 +6,7 @@ import "../config"
 // Pieces butt against each other so the whole bar reads as a single composition.
 Item {
     id: root
-    property color tone: Theme.barCap
+    property color tone: Theme.barCapFill
     property string leftEdge: "none"
     property string rightEdge: "none"
     property int slant: Theme.edgeSlant

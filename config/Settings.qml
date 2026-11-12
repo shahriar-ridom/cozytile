@@ -37,6 +37,7 @@ Singleton {
     property alias desktopClock: adapter.desktopClock
     property alias uiFont: adapter.uiFont
     property alias monoFont: adapter.monoFont
+    property alias frostedGlass: adapter.frostedGlass
     readonly property bool loaded: store.loaded
     // true once the file was read, or found missing and defaults were written
     property bool ready: false
@@ -99,6 +100,8 @@ Singleton {
             // system-wide typefaces; "" = the Cozytile defaults (SF Pro Text / CaskaydiaCove Nerd Font Mono)
             property string uiFont: ""
             property string monoFont: ""
+            // frosted glass: translucent palette-tinted surfaces over a compositor blur, like the kitty terminal, across the shell, windows, lock screen and apps
+            property bool frostedGlass: false
             property var nightLight: ({ enabled: false, temperature: 4000, scheduled: false, start: "20:00", end: "07:00", gamma: 100 })
         }
     }

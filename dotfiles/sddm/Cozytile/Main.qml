@@ -8,6 +8,7 @@ Rectangle {
     width: 1920; height: 1080
     color: config.bg || "#272E33"
 
+    readonly property bool frost: config.frost === "1"   // Cozytile Frosted glass: translucent palette-tinted card
     readonly property color cBg: config.bg || "#272E33"
     readonly property color cPanel: config.panel || "#232A2E"
     readonly property color cField: config.field || "#374145"
@@ -43,14 +44,14 @@ Rectangle {
     Rectangle {
         id: bar
         x: 40; y: 8; width: parent.width - 80; height: 30
-        radius: 10; color: root.cField
+        radius: 10; color: root.frost ? Qt.rgba(root.cField.r, root.cField.g, root.cField.b, 0.78) : root.cField
         Rectangle {  // dark left cap
-            width: 120; height: parent.height; radius: 10; color: root.cPanel
+            width: 120; height: parent.height; radius: 10; color: root.frost ? Qt.rgba(root.cPanel.r, root.cPanel.g, root.cPanel.b, 0.78) : root.cPanel
             Text { anchors.centerIn: parent; text: config.label || "Cozytile"
                 color: root.cAccent; font.family: root.fontName; font.pixelSize: 12; font.bold: true }
         }
         Rectangle {  // dark right cap with clock
-            anchors.right: parent.right; width: 150; height: parent.height; radius: 10; color: root.cPanel
+            anchors.right: parent.right; width: 150; height: parent.height; radius: 10; color: root.frost ? Qt.rgba(root.cPanel.r, root.cPanel.g, root.cPanel.b, 0.78) : root.cPanel
             Text { id: clock; anchors.centerIn: parent; color: root.cFg
                 font.family: root.fontName; font.pixelSize: 12; font.bold: true
                 text: Qt.formatDateTime(new Date(), "hh:mm AP")
@@ -63,7 +64,7 @@ Rectangle {
         id: card
         anchors.centerIn: parent
         width: 380; height: 330; radius: 18
-        color: root.cPanel; opacity: 0.96
+        color: root.frost ? Qt.rgba(root.cPanel.r, root.cPanel.g, root.cPanel.b, 0.78) : root.cPanel; opacity: root.frost ? 1 : 0.96
 
         Column {
             anchors.centerIn: parent; spacing: 16; width: parent.width - 60
@@ -92,7 +93,7 @@ Rectangle {
 
             Rectangle {
                 width: parent.width; height: 46; radius: 23
-                color: root.cField
+                color: root.frost ? Qt.rgba(root.cField.r, root.cField.g, root.cField.b, 0.65) : root.cField
                 border.width: root.failed ? 1 : 0; border.color: root.cError
                 TextInput {
                     id: password
@@ -138,7 +139,7 @@ Rectangle {
                 required property var modelData
                 visible: modelData.ok
                 width: 96; height: 32; radius: 16
-                color: pm.containsMouse ? root.cField : root.cPanel
+                color: pm.containsMouse ? root.cField : (root.frost ? Qt.rgba(root.cPanel.r, root.cPanel.g, root.cPanel.b, 0.78) : root.cPanel)
                 Text { anchors.centerIn: parent; text: modelData.t; color: root.cFg2
                     font.family: root.fontName; font.pixelSize: 12; font.bold: true }
                 MouseArea { id: pm; anchors.fill: parent; hoverEnabled: true; onClicked: modelData.a() }

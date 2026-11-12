@@ -6,13 +6,17 @@
 ------------------------------------------------------------
 -- Layer Rules (Cozytile shell)
 ------------------------------------------------------------
--- Namespaces come from WlrLayershell.namespace in the QML: bar, island, launcher, power, wallpaper, audio.
+-- Namespaces come from WlrLayershell.namespace in the QML. Every shell surface that draws a panel is listed
+-- (the desktop clock is not: it sits under windows). Blur is invisible while panels are opaque and is what
+-- Settings > Appearance > Frosted glass relies on once they turn translucent. ignore_alpha 0.4 keeps soft
+-- shadows (alpha <= 0.38) and fully clear areas out of the blur.
 
 hl.layer_rule({
 	name = "cozytile-blur",
-	match = { namespace = "^cozytile-(bar|island|launcher|power|wallpaper|audio)$" },
+	match = { namespace = "^cozytile-(bar|island|launcher|power|wallpaper|audio|logomenu|globalmenu|stats|settings|osd|search|notifications|notification-center)$" },
 	blur = true,
-	ignore_alpha = 0.2,
+	blur_popups = true,
+	ignore_alpha = 0.4,
 })
 
 hl.layer_rule({
@@ -23,7 +27,7 @@ hl.layer_rule({
 })
 
 ------------------------------------------------------------
--- Floating Terminal
+-- Floating Terminal (window opacity is part of Frosted glass: config/frost.lua)
 ------------------------------------------------------------
 
 hl.window_rule({
@@ -37,59 +41,6 @@ hl.window_rule({
 	float = true,
 	center = true,
 	size = "1100 700",
-	opacity = "0.85 0.80",
-})
-
-------------------------------------------------------------
--- Kitty
-------------------------------------------------------------
-
-hl.window_rule({
-	name = "kitty-opacity",
-
-	match = {
-		class = "^kitty$",
-	},
-
-	opacity = "0.75 0.70",
-})
-
-------------------------------------------------------------
--- LibreWolf
-------------------------------------------------------------
-
-hl.window_rule({
-	name = "librewolf-opacity",
-
-	match = {
-		class = "^[Ll]ibre[Ww]olf$",
-	},
-
-	opacity = "0.95 0.88",
-})
-
-hl.window_rule({
-	name = "zen-opacity",
-
-	match = {
-		class = "zen$",
-	},
-
-	opacity = "0.80 0.72",
-})
-
-------------------------------------------------------------
--- VSCode
-------------------------------------------------------------
-
-hl.window_rule({
-	name = "code-opacity",
-
-	match = {
-		class = "^code$",
-	},
-
-	opacity = "0.90 0.82",
 })
 
 ------------------------------------------------------------
@@ -106,7 +57,6 @@ hl.window_rule({
 	float = true,
 	center = true,
 	size = "1260 730",
-	opacity = "0.82 0.75",
 })
 
 ------------------------------------------------------------

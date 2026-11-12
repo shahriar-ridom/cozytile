@@ -32,13 +32,24 @@ Singleton {
     readonly property var p: palettes[name] || palettes.everforest
 
     // ---- semantic colours ------------------------------------------------
+    // Frosted glass (Settings.frostedGlass): the look of the kitty terminal everywhere. Surfaces keep their palette
+    // colour but turn translucent (kitty: background_opacity 0.78), and the compositor blurs what is behind them.
+    readonly property bool frost: Settings.frostedGlass
+    readonly property real frostAlpha: 0.62   // about what kitty ends up with: its own 0.78 times the window rule 0.75
+    // palette entries are plain strings, so go through Qt.lighter to get a real colour before reading r/g/b
+    function veil(c, a) { const k = Qt.lighter(c, 1.0); return Qt.rgba(k.r, k.g, k.b, a); }
+
     // bar: two tones, "cap" (dark end pieces) and "mid" (long section), as in Cozytile
     readonly property color barCap: p.dim
     readonly property color barMid: p.bg3
+    // fills for bar/island shapes (barCap/barMid also serve as text-on-accent colours, so they stay solid)
+    readonly property color barCapFill: frost ? veil(p.dim, frostAlpha) : p.dim
+    readonly property color barMidFill: frost ? veil(p.bg3, frostAlpha) : p.bg3
     readonly property color barText: p.fg
     readonly property color barTextDim: p.fg2
     readonly property color slash: Qt.rgba(p.fg.r, p.fg.g, p.fg.b, 0.14)
-    readonly property color shadow: Qt.rgba(0, 0, 0, 0.38)
+    // lighter under frosted glass: the drop shadow shows through translucent panels
+    readonly property color shadow: Qt.rgba(0, 0, 0, frost ? 0.24 : 0.38)
 
     readonly property color wsActive: p.workspaceActive
     readonly property color wsOccupied: p.fg2
@@ -53,15 +64,15 @@ Singleton {
     readonly property color press: Qt.rgba(p.fg.r, p.fg.g, p.fg.b, 0.16)
 
     readonly property color surface: p.bg
-    readonly property color surfaceAlt: p.bg2
-    readonly property color surfaceHigh: p.bg3
+    readonly property color surfaceAlt: frost ? veil(p.bg2, 0.5) : p.bg2
+    readonly property color surfaceHigh: frost ? veil(p.bg3, 0.55) : p.bg3
     readonly property color border: p.bg3
-    readonly property color popupBg: p.bg
-    readonly property color tooltipBg: p.dim
-    readonly property color launcherBg: p.bg
-    readonly property color notifBg: p.bg
+    readonly property color popupBg: frost ? veil(p.bg, frostAlpha) : p.bg
+    readonly property color tooltipBg: frost ? veil(p.dim, 0.8) : p.dim
+    readonly property color launcherBg: frost ? veil(p.bg, frostAlpha) : p.bg
+    readonly property color notifBg: frost ? veil(p.bg, frostAlpha) : p.bg
     readonly property color notifBorder: p.bg3
-    readonly property color osdBg: p.bg
+    readonly property color osdBg: frost ? veil(p.bg, frostAlpha) : p.bg
     readonly property color osdTrack: p.bg3
     readonly property color osdFill: p.accent
 

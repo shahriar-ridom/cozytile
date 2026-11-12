@@ -16,7 +16,7 @@ import "modules/wallpaper"
 
 ShellRoot {
     // singletons load lazily; night light must run its schedule from startup
-    Component.onCompleted: NightLightService.tick()
+    Component.onCompleted: { NightLightService.tick(); RecentService.maxApps; FrostService.enabled; }  // touch: starts recording opened apps
 
     // ---- keybind entry points: `qs -c cozytile ipc call <target> <function>` ----
     IpcHandler {
@@ -107,6 +107,13 @@ ShellRoot {
         function get(): string { return Theme.name; }
         // derive the optional "wallpaper" theme from an image (matugen), without touching other themes
         function fromImage(path: string): void { ThemeService.generate(path); }
+    }
+    IpcHandler {
+        target: "frost"
+        function toggle(): void { FrostService.toggle(); }
+        function on(): void { FrostService.set(true); }
+        function off(): void { FrostService.set(false); }
+        function get(): bool { return FrostService.enabled; }
     }
     IpcHandler {
         target: "nightlight"

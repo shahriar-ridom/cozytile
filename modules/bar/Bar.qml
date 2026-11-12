@@ -40,7 +40,7 @@ PanelWindow {
             id: base
             anchors.fill: parent
             radius: Theme.barRadius
-            color: Theme.barMid
+            color: Theme.barMidFill
             visible: !win.floating
             Behavior on color { ColorAnimation { duration: Theme.animNormal } }
         }
@@ -52,7 +52,7 @@ PanelWindow {
             visible: win.floating
             x: left.x; width: left.width; height: parent.height
             radius: Theme.barRadius
-            color: Theme.barCap
+            color: Theme.barCapFill
             Behavior on color { ColorAnimation { duration: Theme.animNormal } }
             Shadowed { target: leftPill; z: -1 }
         }
@@ -61,7 +61,7 @@ PanelWindow {
             visible: win.floating
             x: right.x; width: right.width; height: parent.height
             radius: Theme.barRadius
-            color: Theme.barCap
+            color: Theme.barCapFill
             Behavior on color { ColorAnimation { duration: Theme.animNormal } }
             Shadowed { target: rightPill; z: -1 }
         }
@@ -74,7 +74,7 @@ PanelWindow {
             Segment {
                 id: logoSeg
                 leftEdge: win.floating ? "none" : "round"; rightEdge: win.floating ? "none" : "curve"; padding: 14
-                tone: win.floating ? "transparent" : Theme.barCap
+                tone: win.floating ? "transparent" : Theme.barCapFill
                 Item {
                     width: 18; height: Theme.barHeight
                     LogoMark { anchors.centerIn: parent }
@@ -89,7 +89,7 @@ PanelWindow {
             Item { width: 4; height: 1 }
             Segment {
                 id: wsSeg
-                tone: win.floating ? "transparent" : Theme.barMid; padding: 6
+                tone: win.floating ? "transparent" : Theme.barMidFill; padding: 6
                 WorkspaceIndicator { screen: win.screen; anchors.verticalCenter: parent.verticalCenter }
             }
             Slash { id: leftSlash; visible: win.medium && !win.floating }
@@ -98,7 +98,7 @@ PanelWindow {
                 id: searchSeg
                 visible: win.medium
                 leftEdge: win.floating ? "none" : "curve"; rightEdge: win.floating ? "none" : "curve"; padding: 14
-                tone: win.floating ? "transparent" : Theme.barCap
+                tone: win.floating ? "transparent" : Theme.barCapFill
                 Item {
                     id: searchCap
                     width: searchRow.implicitWidth; height: Theme.barHeight
@@ -115,7 +115,7 @@ PanelWindow {
             Segment {
                 id: menuSeg
                 visible: Settings.globalMenu && win.medium && GlobalMenuService.hasMenu
-                tone: win.floating ? "transparent" : Theme.barMid; padding: 6
+                tone: win.floating ? "transparent" : Theme.barMidFill; padding: 6
                 GlobalMenu { maxWidth: win.menuBudget; anchors.verticalCenter: parent.verticalCenter }
             }
         }
@@ -136,11 +136,11 @@ PanelWindow {
             Segment {
                 visible: tray.hasItems
                 leftEdge: win.floating ? "none" : "curve"; rightEdge: win.floating ? "none" : "curve"; padding: 12
-                tone: win.floating ? "transparent" : Theme.barCap
+                tone: win.floating ? "transparent" : Theme.barCapFill
                 SystemTray { id: tray; anchors.verticalCenter: parent.verticalCenter }
             }
             Segment {
-                tone: win.floating ? "transparent" : Theme.barMid; padding: 4
+                tone: win.floating ? "transparent" : Theme.barMidFill; padding: 4
                 SystemStats { visible: win.medium; showTemp: win.wide }
                 Slash { visible: win.medium }
                 NetworkItem { visible: win.wide; width: visible ? implicitWidth : 0 }
@@ -151,7 +151,7 @@ PanelWindow {
             }
             Segment {
                 leftEdge: win.floating ? "none" : "curve"; rightEdge: win.floating ? "none" : "round"; padding: 10
-                tone: win.floating ? "transparent" : Theme.barCap
+                tone: win.floating ? "transparent" : Theme.barCapFill
                 Clock {}
             }
         }

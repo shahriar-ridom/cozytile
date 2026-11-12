@@ -81,7 +81,7 @@ PanelWindow {
         NumberAnimation { to: 0; duration: 700; easing.type: Easing.InOutSine }
     }
     readonly property color capColor: win.mode === "alarm"
-        ? Qt.tint(Theme.barCap, Qt.rgba(Theme.warn.r, Theme.warn.g, Theme.warn.b, 0.14 + 0.26 * pulse)) : Theme.barCap
+        ? Qt.tint(Theme.barCapFill, Qt.rgba(Theme.warn.r, Theme.warn.g, Theme.warn.b, 0.14 + 0.26 * pulse)) : Theme.barCapFill
 
     HyprlandFocusGrab {
         windows: [win]
@@ -137,7 +137,7 @@ PanelWindow {
             opacity: shown * (1 - 0.28 * depth)
             ShapePath {
                 strokeWidth: -1
-                fillColor: Qt.tint(Theme.barCap, Qt.rgba(layer.tone.r, layer.tone.g, layer.tone.b, 0.16))
+                fillColor: Qt.tint(Theme.barCapFill, Qt.rgba(layer.tone.r, layer.tone.g, layer.tone.b, 0.16))
                 PathSvg { path: win.outline(layer.width, layer.height, win.shapeS, win.shapeRT, win.shapeRB) }
             }
         }

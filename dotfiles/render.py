@@ -5,9 +5,10 @@
 
 <theme> is a key of config/palettes.json, or "wallpaper" (uses the matugen palette
 cached by the shell in ~/.local/state/cozytile/wallpaper-palette.json).
-Placeholders in templates/*.tpl:  {{key}}  {{key|nohash}}  {{key|rgb}}  {{key|hypr}}  {{key|rgba:AA}}
+Placeholders in templates/*.tpl:  {{key}}  {{key|nohash}}  {{key|rgb}}  {{key|hypr}}  {{key|rgba:AA}}  {{key|argb:AA}}
 Blocks (not nestable):  {{#if key}}...{{/if}}  {{#unless key}}...{{/unless}}   (key is non-empty / empty)
-Lock screen options come from the "lockscreen" object in ~/.local/state/cozytile/settings.json.
+Lock screen options come from the "lockscreen" object in ~/.local/state/cozytile/settings.json;
+"frostedGlass" there sets the {{#if frost}} blocks (translucent lock field, GTK/Qt surfaces, login card).
 """
 import argparse, json, os, re, sys
 from pathlib import Path
@@ -65,6 +66,7 @@ def sub(m, pal, extra):
     if flt == "rgb": return "{},{},{}".format(*hexrgb(val))
     if flt == "semi": return "{};{};{}".format(*hexrgb(val))
     if flt == "argb": return "#ff" + val.lstrip("#")
+    if flt.startswith("argb:"): return "#" + flt[5:] + val.lstrip("#")
     if flt == "hypr": return "rgb(" + val.lstrip("#") + ")"
     if flt.startswith("rgba:"): return "rgba(" + val.lstrip("#") + flt[5:] + ")"
     sys.exit(f"unknown filter '{flt}'")
@@ -83,6 +85,12 @@ def font_extras():
     mono = clean(cfg.get("monoFont")) or MONO_FONT
     return {"ui_font": ui, "mono_font": mono, "custom_ui_font": "1" if ui != UI_FONT else ""}
 LOCK_SIZES = {"large": 150, "medium": 112, "small": 80}
+
+def frost_extras():
+    """Frosted glass switch (Settings > Appearance): `frost` for {{#if}} blocks, `frost_flag` as a literal 1/0."""
+    try: on = bool(json.loads((STATE / "settings.json").read_text()).get("frostedGlass"))
+    except Exception: on = False
+    return {"frost": "1" if on else "", "frost_flag": "1" if on else "0"}
 
 def lock_extras(wallpaper):
     """Flatten the lockscreen settings into template keys; empty string = off (for {{#if}} blocks)."""
@@ -127,7 +135,7 @@ def main():
     miss = [k for k in REQUIRED if k not in pal]
     if miss: sys.exit("palette missing keys: " + ", ".join(miss))
     extra = {"theme": a.theme, "label": pal.get("label", a.theme), "wallpaper": a.wallpaper or "screenshot",
-             "home": str(Path.home()), **font_extras(), **lock_extras(a.wallpaper)}
+             "home": str(Path.home()), **font_extras(), **frost_extras(), **lock_extras(a.wallpaper)}
     out = Path(a.out)
     for tpl, rel in TARGETS.items():
         src = HERE / "templates" / tpl

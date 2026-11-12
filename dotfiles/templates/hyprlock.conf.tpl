@@ -115,8 +115,9 @@ input-field {
     dots_size = 0.24
     dots_spacing = 0.4
     dots_center = true
-    inner_color = {{dim|rgba:55}}
-    font_color = {{fg|hypr}}
+{{#if frost}}    inner_color = {{bg|rgba:99}}
+{{/if}}{{#unless frost}}    inner_color = {{dim|rgba:55}}
+{{/unless}}    font_color = {{fg|hypr}}
     font_family = {{ui_font}}
     check_color = {{yellow|hypr}}
     fail_color = {{red|hypr}}

@@ -27,6 +27,13 @@ Column {
         Toggle { checked: Settings.syncDotfiles; onToggled: v => Settings.syncDotfiles = v }
     }
 
+    Section { text: "Effects" }
+    SettingRow {
+        title: "Frosted glass"
+        desc: "Translucent, blurred surfaces like the terminal, on the bar, island, panels, windows, lock screen, GTK/Qt apps and login"
+        Toggle { checked: Settings.frostedGlass; onToggled: v => FrostService.set(v) }
+    }
+
     Section { text: "Fonts" }
     SettingRow {
         title: "Interface font"; desc: "Shell, GTK apps and the lock screen"

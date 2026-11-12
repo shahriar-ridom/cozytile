@@ -5,7 +5,8 @@ import Quickshell.Wayland
 import "../../config"
 import "../../services"
 
-// Dropdown under the bar's logo: About / Settings, window + compositor actions, power actions.
+// Dropdown under the bar's logo: About / Settings, Recent Apps / Recent Files (flyouts), window + compositor
+// actions, then power actions in two groups.
 // Reuses MenuList for the rows. Force Quit, Restart, Shut Down and Log Out ask for a second click:
 // the row turns into "Confirm ...".
 PanelWindow {
@@ -57,29 +58,45 @@ PanelWindow {
         9: { confirm: true, run: () => Quickshell.execDetached(["systemctl", "poweroff"]) },
         10: { confirm: true, run: () => Quickshell.execDetached(["sh", "-c", "hyprctl dispatch exit || loginctl terminate-user $USER"]) }
     })
+    // flyout rows: ids 100+ are recent apps, 200+ recent files (index into the service lists)
+    readonly property int appBase: 100
+    readonly property int fileBase: 200
 
     function row(id, label, enabled) {
         return { id: id, label: pending === id ? "Confirm " + label : label, shortcut: "", children: [],
                  enabled: enabled !== false, toggle: "", state: 0, sep: false };
     }
     readonly property var sepRow: ({ id: -1, label: "", shortcut: "", children: [], enabled: false, toggle: "", state: 0, sep: true })
+    function leaf(id, label, enabled) {
+        return { id: id, label: label, shortcut: "", children: [], enabled: enabled !== false, toggle: "", state: 0, sep: false };
+    }
+    function flyout(id, label, kids, emptyText) {
+        return { id: id, label: label, shortcut: "", enabled: true, toggle: "", state: 0, sep: false,
+                 children: kids.length ? kids : [leaf(-2, emptyText, false)] };
+    }
     readonly property var model: [
         row(1, "About This System"),
         row(2, "System Settings…"),
+        sepRow,
+        flyout(20, "Recent Apps", RecentService.apps.map((a, i) => leaf(appBase + i, a.name)), "No recent apps"),
+        flyout(21, "Recent Files", RecentService.files.map((f, i) => leaf(fileBase + i, f.name)), "No recent files"),
         sepRow,
         row(3, winPid > 0 ? "Force Quit " + winName : "Force Quit", winPid > 0),
         row(4, "Reload Hyprland"),
         sepRow,
         row(5, "Lock Screen"),
         row(6, "Sleep"),
-        row(7, "Restart"),
         row(8, "Hibernate"),
-        row(9, "Shut Down"),
-        row(10, "Log Out")
+        sepRow,
+        row(10, "Log Out"),
+        row(7, "Restart"),
+        row(9, "Shut Down")
     ]
 
     function activate(id) {
         const a = actions[id];
+        if (id >= fileBase) { UiState.logoMenu = false; RecentService.openFile(RecentService.files[id - fileBase].path); return; }
+        if (id >= appBase) { UiState.logoMenu = false; RecentService.launchApp(RecentService.apps[id - appBase].cls); return; }
         if (!a) return;
         if (a.confirm && pending !== id) { pending = id; return; }
         UiState.logoMenu = false;
@@ -87,7 +104,7 @@ PanelWindow {
     }
 
     property bool shown: false
-    Component.onCompleted: { probe.running = true; shown = Qt.binding(() => UiState.logoMenu); }
+    Component.onCompleted: { probe.running = true; RecentService.refreshFiles(); shown = Qt.binding(() => UiState.logoMenu); }
     readonly property bool busy: visible
 
     MenuList {
