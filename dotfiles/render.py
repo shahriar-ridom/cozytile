@@ -29,6 +29,8 @@ TARGETS = {
     "fastfetch.jsonc.tpl": "fastfetch/config.jsonc",
     "qt6ct-colors.conf.tpl": "qt6ct/cozytile.conf",
     "sddm-theme.conf.tpl": "sddm/theme.conf",
+    "kitty-font.conf.tpl": "kitty/font.conf",
+    "gsettings.sh.tpl": "gtk/fonts.sh",
 }
 REQUIRED = ["dim","bg","bg2","bg3","bg4","bg5","fg","fg2","muted","green","aqua","blue","yellow","orange","red","purple","accent","workspaceActive"]
 
@@ -70,6 +72,16 @@ def sub(m, pal, extra):
 LOCK_DEFAULTS = {"wallpaper": "", "blur": 3, "dim": 70, "clock": "large", "font": "sans", "hour24": True, "seconds": False,
                  "showDate": True, "showStatus": True, "showUser": True, "showAvatar": True, "hint": "Enter password"}
 LOCK_FONTS = {"sans": "SF Pro Display Bold", "rounded": "SF Pro Rounded Bold", "mono": "CaskaydiaCove Nerd Font Bold"}
+UI_FONT, MONO_FONT = "SF Pro Text", "CaskaydiaCove Nerd Font Mono"
+
+def font_extras():
+    """System-wide typefaces chosen in Settings > Appearance ("" = the defaults above)."""
+    try: cfg = json.loads((STATE / "settings.json").read_text())
+    except Exception: cfg = {}
+    clean = lambda v: re.sub(r"[\"'\\\n$`]", "", str(v or "")).strip()
+    ui = clean(cfg.get("uiFont")) or UI_FONT
+    mono = clean(cfg.get("monoFont")) or MONO_FONT
+    return {"ui_font": ui, "mono_font": mono, "custom_ui_font": "1" if ui != UI_FONT else ""}
 LOCK_SIZES = {"large": 150, "medium": 112, "small": 80}
 
 def lock_extras(wallpaper):
@@ -77,6 +89,7 @@ def lock_extras(wallpaper):
     try: cfg = json.loads((STATE / "settings.json").read_text()).get("lockscreen") or {}
     except Exception: cfg = {}
     c = {**LOCK_DEFAULTS, **cfg}
+    fe = font_extras()
     wall = os.path.expanduser(str(c["wallpaper"] or ""))
     if not (wall and Path(wall).is_file()): wall = wallpaper or "screenshot"
     face = next((str(p) for p in (Path.home() / ".face", Path.home() / ".face.icon") if p.is_file()), "")
@@ -89,7 +102,7 @@ def lock_extras(wallpaper):
         "lock_blur": str(max(0, min(5, int(c["blur"])))),
         "lock_dim": "%.2f" % (max(10, min(100, int(c["dim"]))) / 100),
         "lock_clock_size": str(size), "lock_date_size": str(round(size * 0.17 + 4)),
-        "lock_font": LOCK_FONTS.get(c["font"], LOCK_FONTS["sans"]),
+        "lock_font": (fe["ui_font"] + " Bold") if (c["font"] == "sans" and fe["custom_ui_font"]) else LOCK_FONTS.get(c["font"], LOCK_FONTS["sans"]),
         "lock_time_fmt": ("%H:%M" if c["hour24"] else "%-I:%M") + (":%S" if c["seconds"] else ""),
         "lock_date": on(c["showDate"]), "lock_status": on(c["showStatus"]),
         "lock_user": on(c["showUser"]), "lock_avatar": face if c["showAvatar"] else "",
@@ -114,7 +127,7 @@ def main():
     miss = [k for k in REQUIRED if k not in pal]
     if miss: sys.exit("palette missing keys: " + ", ".join(miss))
     extra = {"theme": a.theme, "label": pal.get("label", a.theme), "wallpaper": a.wallpaper or "screenshot",
-             "home": str(Path.home()), **lock_extras(a.wallpaper)}
+             "home": str(Path.home()), **font_extras(), **lock_extras(a.wallpaper)}
     out = Path(a.out)
     for tpl, rel in TARGETS.items():
         src = HERE / "templates" / tpl

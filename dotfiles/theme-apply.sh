@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# theme-apply.sh <everforest|sakura|wallpaper> [--dotfiles-only] [--no-reload]
+# theme-apply.sh <everforest|sakura|wallpaper> [--dotfiles-only] [--no-reload] [--fonts]
 # Renders every generated dotfile for the theme, then live-reloads whatever is hooked up.
 set -u
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 theme=${1:?usage: theme-apply.sh <theme> [--dotfiles-only] [--no-reload]}; shift || true
-only=0; reload=1
-for a in "$@"; do case $a in --dotfiles-only) only=1;; --no-reload) reload=0;; esac; done
+only=0; reload=1; fonts=0
+for a in "$@"; do case $a in --dotfiles-only) only=1;; --no-reload) reload=0;; --fonts) fonts=1;; esac; done
 
 CFG="${XDG_CONFIG_HOME:-$HOME/.config}"
 STATE="${XDG_STATE_HOME:-$HOME/.local/state}/cozytile"
@@ -23,6 +23,8 @@ P
 args=(); [ -n "$wall" ] && args+=(--wallpaper "$wall")
 python3 "$HERE/render.py" "$theme" "${args[@]}" >/dev/null || exit 1
 echo "rendered $theme -> $GEN"
+
+[ $fonts = 1 ] && [ -f "$GEN/gtk/fonts.sh" ] && sh "$GEN/gtk/fonts.sh" >/dev/null 2>&1 && echo "applied GTK fonts"
 
 hooked() { grep -rqs "cozytile/generated" "$1" 2>/dev/null; }   # only touch apps the user wired up
 

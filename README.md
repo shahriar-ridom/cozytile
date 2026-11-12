@@ -16,6 +16,7 @@ notifications, and themed dotfiles, all sharing one colour palette. It is a Wayl
 - **Launcher**: searches your installed apps, plus calculator, emoji, and clipboard history.
 - **Notifications**: a built-in notification daemon with history, actions, Do-Not-Disturb, and progress bars.
 - **Feedback at a glance**: volume, mic, and brightness changes show in the island, with no separate OSD popups.
+- **Desktop clock**: a clean clock on the wallpaper (minimal, stacked, or analog), click-through and behind every window. Style, corner, and size live in Settings.
 - **Wallpapers**: a thumbnail picker that remembers your choice per monitor.
 - **Themes**: Everforest (default) and Sakura, plus an optional "from wallpaper" theme (via matugen). Switch live with one key.
 - **Whole-desktop look**: terminal, prompt, lock screen, GTK/Qt apps, and optionally the login screen all match the theme.

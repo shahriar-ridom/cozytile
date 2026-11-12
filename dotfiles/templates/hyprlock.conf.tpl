@@ -30,7 +30,7 @@ label {
     text = cmd[update:3000] a=$(playerctl metadata artist 2>/dev/null); t=$(playerctl metadata title 2>/dev/null); [ -n "$t" ] && echo "${a:+$a - }$t" | cut -c1-60
     color = {{fg|rgba:cc}}
     font_size = 13
-    font_family = SF Pro Text Medium
+    font_family = {{ui_font}} Medium
     position = 18, -12
     halign = left
     valign = top
@@ -41,7 +41,7 @@ label {
     text = $LAYOUT
     color = {{fg|rgba:cc}}
     font_size = 13
-    font_family = SF Pro Text Medium
+    font_family = {{ui_font}} Medium
     position = {{lock_layout_x}}, -12
     halign = right
     valign = top
@@ -53,7 +53,7 @@ label {
     text = cmd[update:30000] cat /sys/class/power_supply/BAT*/capacity | head -1 | sed 's/$/%/'
     color = {{fg|rgba:cc}}
     font_size = 13
-    font_family = SF Pro Text Medium
+    font_family = {{ui_font}} Medium
     position = -18, -12
     halign = right
     valign = top
@@ -65,7 +65,7 @@ label {
     text = cmd[update:60000] date '+%A, %B %-d'
     color = {{fg|rgba:e6}}
     font_size = {{lock_date_size}}
-    font_family = SF Pro Display Semibold
+    font_family = {{ui_font}} Semibold
     position = 0, -7.5%
     halign = center
     valign = top
@@ -100,7 +100,7 @@ label {
     text = $USER
     color = {{fg|rgba:f2}}
     font_size = 15
-    font_family = SF Pro Text Semibold
+    font_family = {{ui_font}} Semibold
     position = 0, -38%
     halign = center
     valign = center
@@ -117,7 +117,7 @@ input-field {
     dots_center = true
     inner_color = {{dim|rgba:55}}
     font_color = {{fg|hypr}}
-    font_family = SF Pro Text
+    font_family = {{ui_font}}
     check_color = {{yellow|hypr}}
     fail_color = {{red|hypr}}
     capslock_color = {{orange|hypr}}

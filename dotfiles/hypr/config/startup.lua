@@ -43,8 +43,7 @@ hl.on("hyprland.start", function()
 	-- GTK Fonts
 	--------------------------------------------------------------------------
 
-	hl.exec_cmd("gsettings set org.gnome.desktop.interface font-name 'SF Pro Text 11'")
-
-	hl.exec_cmd("gsettings set org.gnome.desktop.interface document-font-name 'SF Pro Text 11'")
+	-- fonts chosen in Settings > Appearance are rendered to generated/gtk/fonts.sh; fall back to the defaults
+	hl.exec_cmd("sh -c 'f=\"$HOME/.config/cozytile/generated/gtk/fonts.sh\"; if [ -f \"$f\" ]; then sh \"$f\"; else gsettings set org.gnome.desktop.interface font-name \"SF Pro Text 11\"; gsettings set org.gnome.desktop.interface document-font-name \"SF Pro Text 11\"; fi'")
 
 end)

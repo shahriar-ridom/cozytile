@@ -24,9 +24,10 @@ PanelWindow {
     property int page: UiState.settingsPageIndex
     onPageChanged: UiState.settingsPageIndex = page
     readonly property var pages: [
-        { name: "Appearance", icon: "", file: "PageAppearance.qml", group: "Shell" },
+        { name: "Appearance", icon: "", file: "PageAppearance.qml", group: "Personalise" },
+        { name: "Desktop",   icon: "", file: "PageDesktop.qml",   group: "Personalise" },
+        { name: "Lock screen", icon: "", file: "PageLockscreen.qml", group: "Personalise" },
         { name: "Bar",        icon: "", file: "PageBar.qml",        group: "Shell" },
-        { name: "Lock screen", icon: "", file: "PageLockscreen.qml", group: "Shell" },
         { name: "General",    icon: "", file: "PageGeneral.qml",    group: "Shell" },
         { name: "Display",    icon: "", file: "PageDisplay.qml",    group: "System" },
         { name: "Windows",    icon: "", file: "PageWindows.qml",    group: "System" },
@@ -56,16 +57,30 @@ PanelWindow {
     // ---- shared picker sheet (dropdown lists + app chooser) ----
     property var pickerDropdown: null
     property var pickerAppCb: null
+    property var pickerFontCb: null
+    property string pickerFontCurrent: ""
     property bool pickerOpen: false
     property string pickerTitle: ""
 
     function openPicker(dd) {
         pickerAppCb = null;
+        pickerFontCb = null;
         pickerDropdown = dd;
         pickerTitle = dd.title || "Choose";
         pickerOpen = true;
     }
+    function openFontPicker(current, title, cb) {
+        pickerDropdown = null;
+        pickerAppCb = null;
+        pickerFontCb = cb;
+        pickerFontCurrent = current || "";
+        pickerTitle = title || "Choose a font";
+        search.clear();
+        pickerOpen = true;
+        search.focusInput();
+    }
     function openAppPicker(cb) {
+        pickerFontCb = null;
         pickerDropdown = null;
         pickerAppCb = cb;
         pickerTitle = "Choose an app";
@@ -82,6 +97,14 @@ PanelWindow {
             .filter(e => !e.noDisplay && (q === "" || e.name.toLowerCase().includes(q) || (e.genericName || "").toLowerCase().includes(q)))
             .sort((a, b) => a.name.localeCompare(b.name))
             .slice(0, 80);
+    }
+    // every installed family, once (Qt lists each family a single time)
+    readonly property var allFonts: Qt.fontFamilies()
+    readonly property var fonts: {
+        if (!pickerFontCb) return [];
+        const q = search.text.trim().toLowerCase();
+        const l = allFonts.filter(f => q === "" || f.toLowerCase().includes(q));
+        return [{ family: "", label: "Default" }].concat(l.map(f => ({ family: f, label: f })));
     }
     function appCommand(e) {
         const s = (e.execString || (e.command || []).join(" ")).replace(/\s*%[fFuUdDnNickvm]/g, "").trim();
@@ -207,7 +230,7 @@ PanelWindow {
                 id: sheet
                 anchors.centerIn: parent
                 width: 380
-                height: Math.min(parent.height - 80, sheetHead.height + list.contentHeight + 24)
+                height: win.pickerFontCb ? parent.height - 80 : Math.min(parent.height - 80, sheetHead.height + list.contentHeight + 24)
                 radius: Theme.radius + 2
                 color: Theme.popupBg
                 border.width: 1; border.color: Theme.border
@@ -225,9 +248,12 @@ PanelWindow {
                     }
                     TextField {
                         id: search
-                        visible: win.pickerAppCb !== null
-                        width: parent.width; placeholder: "Search apps…"
-                        onAccepted: { if (win.apps.length) list.choose(win.apps[0]); }
+                        visible: win.pickerAppCb !== null || win.pickerFontCb !== null
+                        width: parent.width; placeholder: win.pickerFontCb ? "Search fonts…" : "Search apps…"
+                        onAccepted: {
+                            if (win.pickerFontCb) { if (win.fonts.length > 1) list.choose(win.fonts[1]); }
+                            else if (win.apps.length) list.choose(win.apps[0]);
+                        }
                     }
                 }
                 ListView {
@@ -235,9 +261,12 @@ PanelWindow {
                     anchors { top: sheetHead.bottom; topMargin: 8; left: parent.left; right: parent.right; bottom: parent.bottom; margins: 8; leftMargin: 8 }
                     clip: true
                     boundsBehavior: Flickable.StopAtBounds
-                    model: win.pickerAppCb ? win.apps : (win.pickerDropdown ? win.pickerDropdown.model : [])
+                    model: win.pickerFontCb ? win.fonts : (win.pickerAppCb ? win.apps : (win.pickerDropdown ? win.pickerDropdown.model : []))
                     function choose(v) {
-                        if (win.pickerAppCb) {
+                        if (win.pickerFontCb) {
+                            const cb = win.pickerFontCb;
+                            cb(v.family);
+                        } else if (win.pickerAppCb) {
                             const cb = win.pickerAppCb;
                             cb({ name: v.name, command: win.appCommand(v) });
                         } else if (win.pickerDropdown) {
@@ -247,7 +276,8 @@ PanelWindow {
                     }
                     delegate: Rectangle {
                         required property var modelData
-                        readonly property bool sel: !win.pickerAppCb && win.pickerDropdown && win.pickerDropdown.current === modelData.value
+                        readonly property bool sel: win.pickerFontCb ? win.pickerFontCurrent === modelData.family
+                            : (!win.pickerAppCb && win.pickerDropdown && win.pickerDropdown.current === modelData.value)
                         width: list.width; height: win.pickerAppCb ? 42 : 34
                         radius: Theme.radiusSmall + 2
                         color: sel ? Theme.surfaceHigh : (hm.containsMouse ? Theme.hover : "transparent")
@@ -263,7 +293,7 @@ PanelWindow {
                             width: parent.width - x - 30
                             Text { width: parent.width; elide: Text.ElideRight
                                 text: win.pickerAppCb ? modelData.name : modelData.label
-                                color: Theme.text; font.family: Theme.font; font.pixelSize: Theme.fontSize + 1; font.bold: parent.parent.sel }
+                                color: Theme.text; font.family: win.pickerFontCb && modelData.family !== "" ? modelData.family : Theme.font; font.pixelSize: Theme.fontSize + 1; font.bold: parent.parent.sel }
                             Text { visible: !!win.pickerAppCb; width: parent.width; elide: Text.ElideRight
                                 text: win.pickerAppCb ? win.appCommand(modelData) : ""
                                 color: Theme.textMuted; font.family: Theme.fontMono; font.pixelSize: Theme.fontSmall }

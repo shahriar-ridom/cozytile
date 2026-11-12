@@ -26,6 +26,9 @@ Singleton {
     property int globalMenuFrom: 0
     readonly property bool globalMenuOpen: globalMenuIndex !== -1
     property real globalMenuX: 0
+    // logo dropdown under the bar's logo, anchored at its left edge (screen px)
+    property bool logoMenu: false
+    property real logoMenuX: 0
     property string islandOpenOn: ""      // name of the screen whose island is expanded
 
     readonly property var focusedScreen: {
@@ -43,7 +46,12 @@ Singleton {
         closeAll();
         islandOpenOn = was ? "" : n;
     }
-    function closeAll() { islandOpenOn = ""; launcher = false; search = false; power = false; wallpaper = false; wallpaperFor = ""; audioPicker = false; settings = false; statPopup = ""; globalMenuIndex = -1; }
+    function closeAll() { islandOpenOn = ""; launcher = false; search = false; power = false; wallpaper = false; wallpaperFor = ""; audioPicker = false; settings = false; statPopup = ""; globalMenuIndex = -1; logoMenu = false; }
+    function toggleLogoMenu(x) {
+        const was = logoMenu;
+        closeAll();
+        if (!was) { logoMenuX = x; logoMenu = true; }
+    }
     // open the dropdown under the bar's Search cap; x = cap's left edge in screen px
     function toggleSearch(x) {
         const was = search;

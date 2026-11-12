@@ -34,6 +34,9 @@ Singleton {
     property alias idle: adapter.idle
     property alias nightLight: adapter.nightLight
     property alias lockscreen: adapter.lockscreen
+    property alias desktopClock: adapter.desktopClock
+    property alias uiFont: adapter.uiFont
+    property alias monoFont: adapter.monoFont
     readonly property bool loaded: store.loaded
     // true once the file was read, or found missing and defaults were written
     property bool ready: false
@@ -91,6 +94,11 @@ Singleton {
             // lock screen (hyprlock) look, rendered by dotfiles/render.py. wallpaper "" = follow the desktop one;
             // clock: large|medium|small; font: sans|rounded|mono; blur 0-5 passes; dim = brightness %
             property var lockscreen: ({ wallpaper: "", blur: 3, dim: 70, clock: "large", font: "sans", hour24: true, seconds: false, showDate: true, showStatus: true, showUser: true, showAvatar: true, hint: "Enter password" })
+            // clock drawn on the desktop (modules/clock): see DesktopClockService for the keys
+            property var desktopClock: ({ enabled: true, style: "minimal", position: "center", size: "medium", hour24: false, seconds: false, showDate: true })
+            // system-wide typefaces; "" = the Cozytile defaults (SF Pro Text / CaskaydiaCove Nerd Font Mono)
+            property string uiFont: ""
+            property string monoFont: ""
             property var nightLight: ({ enabled: false, temperature: 4000, scheduled: false, start: "20:00", end: "07:00", gamma: 100 })
         }
     }

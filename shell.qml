@@ -5,6 +5,7 @@ import Quickshell.Io
 import "config"
 import "services"
 import "modules/bar"
+import "modules/clock"
 import "modules/launcher"
 import "modules/search"
 import "modules/island"
@@ -57,6 +58,15 @@ ShellRoot {
         function toggle(): void { TimerService.toggle(); }
         function add(spec: string): void { TimerService.add(TimerService.parse(spec)); }
         function status(): string { return TimerService.active ? TimerService.format(TimerService.remaining) + (TimerService.paused ? " (paused)" : "") : "idle"; }
+    }
+    IpcHandler {
+        target: "clock"
+        function toggle(): void { DesktopClockService.toggle(); }
+        function move(): void { DesktopClockService.set("enabled", true); DesktopClockService.editing = !DesktopClockService.editing; }
+        function on(): void { DesktopClockService.set("enabled", true); }
+        function off(): void { DesktopClockService.set("enabled", false); }
+        // minimal | stacked | analog
+        function style(name: string): void { if (["minimal", "stacked", "analog"].indexOf(name) >= 0) DesktopClockService.set("style", name); }
     }
     IpcHandler {
         target: "keys"
@@ -136,6 +146,12 @@ ShellRoot {
         Island { required property var modelData; screen: modelData }
     }
 
+    // ---- desktop clock (one per screen, behind all windows) ----
+    Variants {
+        model: Quickshell.screens
+        DesktopClock { required property var modelData; screen: modelData }
+    }
+
     // ---- overlays (live on the focused screen) ----
     // Each overlay window exists only while open or fading out: the loader activates on open,
     // the window holds it via `held` until its close animation ends, then it is destroyed.
@@ -146,6 +162,8 @@ ShellRoot {
         BarSearch { id: searchW; Component.onCompleted: searchL.held = Qt.binding(() => searchW.busy) } }
     LazyLoader { id: gmenuL; property bool held: false; active: UiState.globalMenuOpen || held
         GlobalMenuPopup { id: gmenuW; Component.onCompleted: gmenuL.held = Qt.binding(() => gmenuW.busy) } }
+    LazyLoader { id: logoL; property bool held: false; active: UiState.logoMenu || held
+        LogoMenu { id: logoW; Component.onCompleted: logoL.held = Qt.binding(() => logoW.busy) } }
     LazyLoader { id: audioL; property bool held: false; active: UiState.audioPicker || held
         AudioPicker { id: audioW; Component.onCompleted: audioL.held = Qt.binding(() => audioW.visible) } }
     LazyLoader { id: statL; property bool held: false; active: UiState.statPopup !== "" || held

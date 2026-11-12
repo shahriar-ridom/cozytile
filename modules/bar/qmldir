@@ -12,3 +12,4 @@ StatPopup 1.0 StatPopup.qml
 GlobalMenu 1.0 GlobalMenu.qml
 GlobalMenuPopup 1.0 GlobalMenuPopup.qml
 MenuList 1.0 MenuList.qml
+LogoMenu 1.0 LogoMenu.qml

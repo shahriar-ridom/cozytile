@@ -66,13 +66,6 @@ PanelWindow {
             Shadowed { target: rightPill; z: -1 }
         }
 
-        // right-click anywhere on the bar opens settings (interactive items sit above this)
-        MouseArea {
-            anchors.fill: parent
-            acceptedButtons: Qt.RightButton
-            onClicked: UiState.toggle("settings")
-        }
-
         // ---- left -------------------------------------------------------
         Row {
             id: left
@@ -88,7 +81,8 @@ PanelWindow {
                     HoverArea {
                         anchors.fill: parent; anchors.margins: -6; highlight: false
                         onClicked: m => m.button === Qt.RightButton ? UiState.toggle("power")
-                                 : m.button === Qt.MiddleButton ? UiState.toggle("wallpaper") : UiState.toggle("launcher")
+                                 : m.button === Qt.MiddleButton ? UiState.toggle("wallpaper")
+                                 : UiState.toggleLogoMenu(logoSeg.mapToItem(null, 0, 0).x + Theme.barOriginX)
                     }
                 }
             }

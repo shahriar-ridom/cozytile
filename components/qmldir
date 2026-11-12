@@ -13,3 +13,4 @@ TextField 1.0 TextField.qml
 Dropdown 1.0 Dropdown.qml
 Chip 1.0 Chip.qml
 ReplyField 1.0 ReplyField.qml
+FontField 1.0 FontField.qml

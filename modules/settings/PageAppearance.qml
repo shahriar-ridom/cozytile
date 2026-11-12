@@ -27,19 +27,26 @@ Column {
         Toggle { checked: Settings.syncDotfiles; onToggled: v => Settings.syncDotfiles = v }
     }
 
-    Section { text: "Wallpaper" }
+    Section { text: "Fonts" }
     SettingRow {
-        title: "Wallpaper"; desc: "Pick a new background for each screen"
-        IconButton { glyph: ""; label: "Choose"; size: 30; onClicked: UiState.toggle("wallpaper") }
+        title: "Interface font"; desc: "Shell, GTK apps and the lock screen"
+        modified: Settings.uiFont !== ""
+        onReset: { Settings.uiFont = ""; Theme.applyFonts(); }
+        FontField {
+            title: "Interface font"; value: Settings.uiFont; fallback: Theme.defaultFont
+            opener: panel ? panel.openFontPicker : null
+            onPicked: f => { Settings.uiFont = f; Theme.applyFonts(); }
+        }
     }
     Divider {}
     SettingRow {
-        title: "Wallpaper folder"; desc: "Where the picker looks for images · Enter to save"
-        TextField {
-            width: 240
-            text: (Settings.wallpaperDirs || [])[0] || ""
-            placeholder: "~/Pictures/Wallpapers"
-            onAccepted: t => { const d = (Settings.wallpaperDirs || []).slice(); d[0] = t.trim() || "~/Pictures/Wallpapers"; Settings.wallpaperDirs = d; }
+        title: "Monospace font"; desc: "Terminal (kitty) and code in GTK apps"
+        modified: Settings.monoFont !== ""
+        onReset: { Settings.monoFont = ""; Theme.applyFonts(); }
+        FontField {
+            title: "Monospace font"; value: Settings.monoFont; fallback: Theme.defaultFontMono
+            opener: panel ? panel.openFontPicker : null
+            onPicked: f => { Settings.monoFont = f; Theme.applyFonts(); }
         }
     }
 }

@@ -73,9 +73,11 @@ Singleton {
     readonly property color special: p.purple
 
     // ---- typography ------------------------------------------------------
-    readonly property string font: "SF Pro Text"
+    readonly property string defaultFont: "SF Pro Text"
+    readonly property string defaultFontMono: "CaskaydiaCove Nerd Font Mono"
+    readonly property string font: Settings.uiFont || defaultFont
     readonly property string iconFont: "CaskaydiaCove Nerd Font"
-    readonly property string fontMono: "CaskaydiaCove Nerd Font Mono"
+    readonly property string fontMono: Settings.monoFont || defaultFontMono
     readonly property int fontSize: 12
     readonly property int fontSmall: 10
     readonly property int fontLarge: 15
@@ -115,6 +117,11 @@ Singleton {
         if (n !== "wallpaper") Settings.baseTheme = n;
         if (Settings.syncDotfiles)
             Quickshell.execDetached([Quickshell.shellPath("dotfiles/theme-apply.sh"), n, "--dotfiles-only"]);
+    }
+    // Push the chosen fonts to the rest of the desktop (GTK, kitty, hyprlock) by re-rendering the dotfiles.
+    function applyFonts() {
+        if (Settings.syncDotfiles)
+            Quickshell.execDetached([Quickshell.shellPath("dotfiles/theme-apply.sh"), name, "--dotfiles-only", "--fonts"]);
     }
     function next() {
         const i = themeNames.indexOf(name);
