@@ -14,4 +14,4 @@ hl.window_rule({ name = "frost-kitty",    match = { class = "^kitty$" },        
 hl.window_rule({ name = "frost-librewolf", match = { class = "^[Ll]ibre[Ww]olf$" }, opacity = "0.95 0.88" })
 hl.window_rule({ name = "frost-zen",      match = { class = "zen$" },               opacity = "0.80 0.72" })
 hl.window_rule({ name = "frost-code",     match = { class = "^code$" },             opacity = "0.90 0.82" })
-hl.window_rule({ name = "frost-luma",     match = { class = "luma$" },              opacity = "0.82 0.75" })
+hl.window_rule({ name = "frost-luma",     match = { class = "[Ll]uma$" },              opacity = "0.82 0.75" })

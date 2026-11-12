@@ -64,6 +64,8 @@ fi
 
 if [ $GTK = 1 ]; then
   for v in 3.0 4.0; do append_once "$CFG/gtk-$v/gtk.css" "@import url(\"file://$DEST/generated/gtk/colors.css\");"; done
+  # GTK4 only: makes GTK4 windows ask for compositor blur while Frosted glass is on (see the template)
+  append_once "$CFG/gtk-4.0/gtk.css" "@import url(\"file://$DEST/generated/gtk/gtk4-frost.css\");"
 fi
 
 if [ $SDDM = 1 ]; then

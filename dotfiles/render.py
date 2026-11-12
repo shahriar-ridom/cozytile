@@ -26,6 +26,7 @@ TARGETS = {
     "starship.toml.tpl": "starship.toml",
     "cava.conf.tpl": "cava/config",
     "gtk-colors.css.tpl": "gtk/colors.css",
+    "gtk4-frost.css.tpl": "gtk/gtk4-frost.css",
     "btop.theme.tpl": "btop/cozytile.theme",
     "fastfetch.jsonc.tpl": "fastfetch/config.jsonc",
     "qt6ct-colors.conf.tpl": "qt6ct/cozytile.conf",

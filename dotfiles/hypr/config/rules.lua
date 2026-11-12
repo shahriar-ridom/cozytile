@@ -51,7 +51,7 @@ hl.window_rule({
 	name = "luma",
 
 	match = {
-		class = "luma$",
+		class = "[Ll]uma$",
 	},
 
 	float = true,
