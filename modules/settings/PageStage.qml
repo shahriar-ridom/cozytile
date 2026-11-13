@@ -12,11 +12,6 @@ Column {
 
     Section { text: "Overview" }
     SettingRow {
-        title: "Hot edge"; desc: "Rest the pointer on the screen edge to open the overview. The keybind always works"
-        Toggle { checked: svc.get("hotEdge"); onToggled: v => svc.set("hotEdge", v) }
-    }
-    Divider {}
-    SettingRow {
         title: "Edge"
         Segmented {
             model: [{ label: "Left", value: "left" }, { label: "Right", value: "right" }]

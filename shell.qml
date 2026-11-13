@@ -180,12 +180,6 @@ ShellRoot {
         Island { required property var modelData; screen: modelData }
     }
 
-    // ---- hot edge: hovering the screen edge opens the overview ----
-    Variants {
-        model: Quickshell.screens
-        StageEdge { required property var modelData; screen: modelData }
-    }
-
     // ---- desktop clock (one per screen, behind all windows) ----
     Variants {
         model: Quickshell.screens

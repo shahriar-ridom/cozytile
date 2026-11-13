@@ -9,10 +9,17 @@ mon=${2:-}
 have() { command -v "$1" >/dev/null 2>&1; }
 
 awww_like() {  # $1 = awww | swww
-    local bin=$1 daemon=$1-daemon
-    pgrep -x "$daemon" >/dev/null || { "$daemon" >/dev/null 2>&1 & disown; sleep 0.6; }
-    if [ -n "$mon" ]; then "$bin" img -o "$mon" --transition-type fade "$img"
-    else "$bin" img --transition-type fade "$img"; fi
+    local bin=$1 daemon=$1-daemon i
+    pgrep -x "$daemon" >/dev/null || { setsid "$daemon" >/dev/null 2>&1 & disown; }
+    # at login the daemon (and the compositor outputs) may not be ready yet: wait for it, up to ~15s
+    for i in $(seq 1 60); do "$bin" query >/dev/null 2>&1 && break; sleep 0.25; done
+    # retry the set itself: it can still fail right after the daemon comes up
+    for i in 1 2 3 4 5 6 7 8; do
+        if [ -n "$mon" ]; then "$bin" img -o "$mon" --transition-type fade "$img" && return 0
+        else "$bin" img --transition-type fade "$img" && return 0; fi
+        sleep 1
+    done
+    return 1
 }
 
 if have awww; then awww_like awww

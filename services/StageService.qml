@@ -13,9 +13,8 @@ Singleton {
 
     readonly property var defaults: ({
         enabled: true,
-        hotEdge: true,            // hovering the screen edge opens the overview
         side: "left",             // left | right (which edge)
-        radius: 12, animSpeed: 1.0, edgeDelay: 70,
+        radius: 12, animSpeed: 1.0,
         notify: true,
         stages: [],               // saved names/icons per workspace id
         rules: []                 // [{ cls: "firefox", stage: "research" }]
