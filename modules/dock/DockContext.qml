@@ -24,13 +24,14 @@ PanelWindow {
         if (!it) return [];
         const a = [];
         if (it.tool) return [{ label: "Open", run: () => DockService.openTool(it.id) }, { label: "Remove from Dock", run: () => DockService.removeTool(it.id) }];
-        if (it.trash) return [{ label: "Empty Trash", danger: true, run: () => dock.askEmptyTrash() }];
+        if (it.trash) return DockService.trashCount > 0 ? [{ label: "Empty Trash", danger: true, run: () => dock.askEmptyTrash() }] : [];
         if (it.stack) {
             const view = (v, l) => ({ label: l, checked: it.view === v, run: () => DockService.setStack(it.path, { view: v }) });
             const sort = (v, l) => ({ label: l, checked: it.sort === v, run: () => DockService.setStack(it.path, { sort: v }) });
             if (it.dir !== "recent") a.push({ label: "Open Folder", run: () => FolderService.openFolder(it.path) });
             a.push({ head: "View as" }, view("fan", "Fan"), view("grid", "Grid"), view("list", "List"));
-            a.push({ head: "Sort by" }, sort("modified", "Date Modified"), sort("name", "Name"), sort("kind", "Kind"));
+            // Recent is always newest first
+            if (it.dir !== "recent") a.push({ head: "Sort by" }, sort("modified", "Date Modified"), sort("name", "Name"), sort("kind", "Kind"));
             a.push({ label: "Remove from Dock", run: () => DockService.removeStack(it.path) });
             return a;
         }

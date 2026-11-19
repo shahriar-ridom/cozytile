@@ -105,7 +105,8 @@ PanelWindow {
             width: peek.rowW
             spacing: peek.spacing
             Repeater {
-                model: peek.busy ? peek.wins : []
+                // diffed, so a window opening or closing doesn't recreate (and re-capture) every other thumbnail
+                model: ScriptModel { values: peek.busy ? peek.wins : [] }
                 Item {
                     id: tile
                     required property var modelData

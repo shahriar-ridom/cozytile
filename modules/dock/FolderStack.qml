@@ -35,7 +35,7 @@ PanelWindow {
     function openEntry(e) { close(); FolderService.open(e.path); }
     onItemChanged: if (open && !item) close()
 
-    StackSource { id: source; path: stack.item ? stack.item.dir : ""; more: stack.item ? stack.item.more ?? [] : []; sort: stack.item ? stack.item.sort : "modified" }
+    StackSource { id: source; path: stack.item ? stack.item.dir : ""; more: stack.item ? stack.item.more ?? [] : []; sort: stack.item ? stack.item.sort : "modified"; showHidden: stack.trash }
 
     visible: open || card.opacity > 0.01 || fan.visible
     screen: dock.screen
@@ -59,6 +59,7 @@ PanelWindow {
     readonly property int rowH: 36
     readonly property int cols: 5
     readonly property int count: entries.length
+    readonly property int total: source.total          // the header counts everything, not just the entries read
     readonly property real bodyW: view === "list" ? 380 : cols * cellW
     readonly property real bodyH: view === "list" ? Math.max(rowH * 2, Math.min(9, count) * rowH)
         : Math.max(cellH, Math.min(4, Math.ceil(count / cols)) * cellH)
@@ -88,6 +89,7 @@ PanelWindow {
             width: parent.width - 20; height: 34
             Text {
                 id: title
+                visible: !stack.confirming         // the confirm row replaces the header (popupBg can be translucent)
                 anchors.verticalCenter: parent.verticalCenter
                 x: 6
                 text: stack.item ? stack.item.name : ""
@@ -95,13 +97,14 @@ PanelWindow {
                 font.family: Theme.font; font.pixelSize: Theme.fontSize + 1; font.bold: true
             }
             Text {
+                visible: !stack.confirming
                 anchors { left: title.right; leftMargin: 8; baseline: title.baseline }
-                text: stack.count + (stack.count === 1 ? " item" : " items")
+                text: stack.total + (stack.total === 1 ? " item" : " items")
                 color: Theme.textMuted
                 font.family: Theme.font; font.pixelSize: Theme.fontSmall + 1
             }
             Rectangle {
-                visible: stack.item !== null && stack.item.dir !== "recent" && (!stack.trash || stack.count > 0)
+                visible: !stack.confirming && stack.item !== null && stack.item.dir !== "recent" && (!stack.trash || stack.total > 0)
                 anchors { right: parent.right; verticalCenter: parent.verticalCenter }
                 width: openText.implicitWidth + 20; height: 26
                 radius: Theme.radiusSmall + 2
@@ -130,7 +133,7 @@ PanelWindow {
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
                     x: 6
-                    text: "Delete " + stack.count + (stack.count === 1 ? " item" : " items") + " for good?"
+                    text: "Delete " + stack.total + (stack.total === 1 ? " item" : " items") + " for good?"
                     color: Theme.text
                     font.family: Theme.font; font.pixelSize: Theme.fontSize
                 }

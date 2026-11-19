@@ -14,7 +14,9 @@ Item {
     property string sort: "modified"       // modified (newest first) | name | kind
     property int limit: 150
     readonly property bool recent: path === "recent"
+    property bool showHidden: false        // the Trash shows dotfiles too, so its count matches the icon
     property var entries: []
+    property int total: 0                  // every entry, not just the first `limit`
     readonly property var newest: entries.length ? entries[0] : null
 
     function refresh() { if (recent) proc.running = true; }
@@ -25,14 +27,17 @@ Item {
 
     // ---- directories: `path`, plus the `more` ones merged in (the Trash spans several drives) ----
     property var more: []
-    readonly property var dirs: path === "" || recent ? [] : [path].concat(more)
+    // compared as a string: `more` is often a fresh but equal array, and a new model list would reload every folder
+    readonly property string dirKey: path === "" || recent ? "" : [path].concat(more).join("\n")
+    readonly property var dirs: dirKey ? dirKey.split("\n") : []
     Timer { id: rebuild; interval: 60; onTriggered: root.read() }
     function read() {
         if (recent) return;
-        let out = [];
+        let out = [], sum = 0;
         for (let k = 0; k < models.count; ++k) {
             const m = models.objectAt(k);
             if (!m || m.status !== FolderListModel.Ready) continue;
+            sum += m.count;
             const n = Math.min(m.count, limit);
             for (let i = 0; i < n; ++i)
                 out.push({ name: m.get(i, "fileName"), path: m.get(i, "filePath"), url: m.get(i, "fileUrl").toString(), dir: m.get(i, "fileIsDir"),
@@ -44,6 +49,7 @@ Item {
             out = out.slice(0, limit);
         }
         entries = out;
+        total = sum;
     }
     Instantiator {
         id: models
@@ -57,7 +63,7 @@ Item {
             sortReversed: false
             showDirsFirst: root.sort !== "modified"
             showDotAndDotDot: false
-            showHidden: false
+            showHidden: root.showHidden
             onStatusChanged: rebuild.restart()
             onCountChanged: rebuild.restart()
             onSortFieldChanged: rebuild.restart()
@@ -79,6 +85,7 @@ Item {
                     root.entries = JSON.parse(text).map(f => ({ name: f.name, path: f.path, url: root.urlOf(f.path), dir: false, size: 0,
                         modified: null, suffix: f.name.indexOf(".") > 0 ? f.name.split(".").pop().toLowerCase() : "" }));
                 } catch (e) { root.entries = []; }
+                root.total = root.entries.length;
             }
         }
     }

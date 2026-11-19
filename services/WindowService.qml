@@ -51,13 +51,15 @@ Singleton {
     }
 
     // true when a fullscreen window is shown on the screen's visible workspaces (a game, when `game` is set and its class looks like one)
+    // Workspaces are matched by name: Hyprland gives special workspaces no id. `fullscreen` is a mode bitmask: 1 is
+    // maximized (keeps the bar, so the dock stays too), 2 is real fullscreen.
     readonly property var gameClass: /^(steam_app_|gamescope|lutris|heroic|minecraft|org\.prismlauncher|.*\.exe$)/i
     function fullscreenOn(screen, game) {
         const m = screen ? Hyprland.monitorFor(screen) : null;
         if (!m || !m.activeWorkspace) return false;
         for (const t of Hyprland.toplevels.values) {
             const o = t.lastIpcObject;
-            if (!o || !o.fullscreen || o.mapped === false || !o.workspace || o.workspace.id !== m.activeWorkspace.id) continue;
+            if (!o || !(o.fullscreen & 2) || o.mapped === false || !o.workspace || o.workspace.name !== m.activeWorkspace.name) continue;
             if (!game || gameClass.test(classOf(t))) return true;
         }
         return false;
@@ -80,14 +82,14 @@ Singleton {
         const m = screen ? Hyprland.monitorFor(screen) : null;
         if (!m) return false;
         const mo = m.lastIpcObject || {};
-        const ids = [];
-        if (m.activeWorkspace) ids.push(m.activeWorkspace.id);
-        if (mo.specialWorkspace && mo.specialWorkspace.id) ids.push(mo.specialWorkspace.id);
+        const names = [];
+        if (m.activeWorkspace) names.push(m.activeWorkspace.name);
+        if (mo.specialWorkspace && mo.specialWorkspace.name) names.push(mo.specialWorkspace.name);
         const mx = mo.x ?? 0, my = mo.y ?? 0;
         for (const t of Hyprland.toplevels.values) {
             const o = t.lastIpcObject;
             if (!o || !o.at || !o.size || o.hidden || o.mapped === false) continue;
-            if (!o.workspace || ids.indexOf(o.workspace.id) < 0) continue;
+            if (!o.workspace || names.indexOf(o.workspace.name) < 0) continue;
             const x = o.at[0] - mx, y = o.at[1] - my;
             if (x < rx + rw && x + o.size[0] > rx && y < ry + rh && y + o.size[1] > ry) return true;
         }
@@ -97,12 +99,12 @@ Singleton {
     // true while the window's workspace is shown on some monitor (so it is being rendered)
     function onScreen(t) {
         const o = t ? t.lastIpcObject : null;
-        const id = o && o.workspace ? o.workspace.id : (t && t.workspace ? t.workspace.id : null);
-        if (id === null) return false;
+        const name = o && o.workspace ? o.workspace.name : (t && t.workspace ? t.workspace.name : "");
+        if (!name) return false;
         for (const m of Hyprland.monitors.values) {
-            if (m.activeWorkspace && m.activeWorkspace.id === id) return true;
+            if (m.activeWorkspace && m.activeWorkspace.name === name) return true;
             const mo = m.lastIpcObject;
-            if (mo && mo.specialWorkspace && mo.specialWorkspace.id === id) return true;
+            if (mo && mo.specialWorkspace && mo.specialWorkspace.name === name) return true;
         }
         return false;
     }

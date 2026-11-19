@@ -13,7 +13,25 @@ import "../config"
 Singleton {
     id: root
 
-    readonly property var items: {
+    // `built` is recomputed on every Hyprland event (a window title changing, the 1 s refresh), and is almost always
+    // identical. `items` takes it only when something changed, so the dock, its peek and an open stack don't rebuild
+    // many times a second.
+    property var items: []
+    onBuiltChanged: if (!same(built, items)) items = built
+    Component.onCompleted: items = built
+    function same(a, b) {
+        if (a.length !== b.length) return false;
+        for (let i = 0; i < a.length; ++i) {
+            const x = a[i], y = b[i], keys = Object.keys(x);
+            if (keys.length !== Object.keys(y).length) return false;
+            for (const k of keys) {
+                const u = x[k], v = y[k];
+                if (Array.isArray(u) ? !Array.isArray(v) || u.length !== v.length || u.some((e, j) => e !== v[j]) : u !== v) return false;
+            }
+        }
+        return true;
+    }
+    readonly property var built: {
         DesktopEntries.applications.values.length;      // re-resolve once the application list has loaded
         if (gaming) return gameItems();
         const groups = WindowService.groups;
@@ -77,7 +95,7 @@ Singleton {
     property string recordFile: ""
     readonly property bool recording: recorder.running
     function toggleRecord() {
-        if (recording) { Quickshell.execDetached(["pkill", "-INT", "-x", "gpu-screen-recorder"]); return; }
+        if (recording) { recorder.signal(2); return; }   // SIGINT, to this recorder only
         recordFile = (Quickshell.env("XDG_VIDEOS_DIR") || Quickshell.env("HOME") + "/Videos") + "/Recordings/Recording_" + Qt.formatDateTime(new Date(), "yyyy-MM-dd_HH-mm-ss") + ".mp4";
         recorder.running = true;
     }
@@ -99,7 +117,8 @@ Singleton {
     // asks the dock on the focused screen to open a tool's panel (IPC, keybinds); the serial lets the same tool be asked twice
     property var toolRequest: ({ id: "", serial: 0 })
     function openTool(id) {
-        if (tools[id] && tools[id].action) { toggleRecord(); return; }
+        if (!tools[id]) return;
+        if (tools[id].action) { toggleRecord(); return; }
         toolRequest = { id: id, serial: toolRequest.serial + 1 };
     }
 

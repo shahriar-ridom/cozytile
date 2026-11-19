@@ -656,7 +656,7 @@ PanelWindow {
             const id = DockService.toolRequest.id;
             if (!id || (Hyprland.focusedMonitor && Hyprland.focusedMonitor.name !== win.screenName)) return;
             const i = win.slots.findIndex(s => s.info.tool && s.info.id === id);
-            win.hidePeek();
+            win.hidePeek(); menu.close(); stackPanel.close();
             toolPanel.openFor(id, i >= 0 ? win.lay.x[i] + win.iconSize * win.lay.f[i] / 2 : win.width / 2,
                               i >= 0 ? win.baseY - win.iconSize * win.lay.f[i] : win.baseY - win.iconSize);
         }
