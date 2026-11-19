@@ -1,0 +1,14 @@
+Dock 1.0 Dock.qml
+DockItem 1.0 DockItem.qml
+DockContext 1.0 DockContext.qml
+WindowPeek 1.0 WindowPeek.qml
+FolderStack 1.0 FolderStack.qml
+StackFan 1.0 StackFan.qml
+StackSource 1.0 StackSource.qml
+StackThumb 1.0 StackThumb.qml
+StackEntryArea 1.0 StackEntryArea.qml
+ToolPanel 1.0 ToolPanel.qml
+ClipboardPanel 1.0 ClipboardPanel.qml
+ShotPanel 1.0 ShotPanel.qml
+NotesPanel 1.0 NotesPanel.qml
+SystemPanel 1.0 SystemPanel.qml

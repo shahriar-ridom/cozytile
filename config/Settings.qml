@@ -39,6 +39,18 @@ Singleton {
     property alias uiFont: adapter.uiFont
     property alias monoFont: adapter.monoFont
     property alias frostedGlass: adapter.frostedGlass
+    property alias dockEnabled: adapter.dockEnabled
+    property alias dockPosition: adapter.dockPosition
+    property alias dockIconSize: adapter.dockIconSize
+    property alias dockMagnification: adapter.dockMagnification
+    property alias dockPinned: adapter.dockPinned
+    property alias dockHide: adapter.dockHide
+    property alias dockShowRunning: adapter.dockShowRunning
+    property alias dockStacks: adapter.dockStacks
+    property alias dockTools: adapter.dockTools
+    property alias dockTrash: adapter.dockTrash
+    property alias dockContext: adapter.dockContext
+    property alias dockClipPinned: adapter.dockClipPinned
     readonly property bool loaded: store.loaded
     // true once the file was read, or found missing and defaults were written
     property bool ready: false
@@ -105,6 +117,28 @@ Singleton {
             property string monoFont: ""
             // frosted glass: translucent palette-tinted surfaces over a compositor blur, like the kitty terminal, across the shell, windows, lock screen and apps
             property bool frostedGlass: false
+            // dock: edge (only "bottom" is implemented), icon size px (0 = from the screen), max magnification, pinned desktop-entry ids
+            property bool dockEnabled: true
+            property string dockPosition: "bottom"
+            property int dockIconSize: 0
+            property real dockMagnification: 1.7
+            property list<string> dockPinned: ["kitty", "org.kde.dolphin", "librewolf", "zen", "firefox", "code", "discord", "spotify"]
+            // dock hiding: "never" (windows tile above it), "intelli" (hides while a window touches it), "always" (shown only at the edge)
+            property string dockHide: "intelli"
+            property bool dockShowRunning: true
+            // folder stacks after the running apps: { name, path ("recent" = recently used files), view: fan|grid|list, sort: modified|name|kind }
+            // quick tools after the stacks (any of clipboard, screenshot, notes, system, in this order), the Trash at the very end
+            // (the freedesktop trash, shared with Luma Files), and clipboard entries kept past a clear
+            property list<string> dockTools: ["clipboard", "screenshot", "notes", "system"]
+            property bool dockTrash: true
+            // context awareness: hide for fullscreen apps, minimal dock for games, Downloads opens on dwell
+            property bool dockContext: true
+            property list<string> dockClipPinned: []
+            property var dockStacks: [
+                { name: "Downloads", path: "~/Downloads", view: "fan", sort: "modified" },
+                { name: "Documents", path: "~/Documents", view: "grid", sort: "modified" },
+                { name: "Recent", path: "recent", view: "list", sort: "modified" }
+            ]
             property var nightLight: ({ enabled: false, temperature: 4000, scheduled: false, start: "20:00", end: "07:00", gamma: 100 })
         }
     }

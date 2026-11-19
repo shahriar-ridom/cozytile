@@ -217,6 +217,22 @@ hl.bind(Mod .. " + SHIFT + N", hl.dsp.exec_cmd(qs .. "notifications toggle"))
 hl.bind(Mod .. " + SPACE", hl.dsp.exec_cmd(qs .. "launcher toggle"))
 hl.bind(Mod .. " + SHIFT + I", hl.dsp.exec_cmd(qs .. "island toggle"))
 
+-- Dock quick tools
+hl.bind(Mod .. " + ALT + V", hl.dsp.exec_cmd(qs .. "dock tool clipboard"))
+hl.bind(Mod .. " + ALT + P", hl.dsp.exec_cmd(qs .. "dock tool screenshot"))
+hl.bind(Mod .. " + ALT + N", hl.dsp.exec_cmd(qs .. "dock tool notes"))
+hl.bind(Mod .. " + ALT + M", hl.dsp.exec_cmd(qs .. "dock tool system"))
+hl.bind(Mod .. " + ALT + G", hl.dsp.exec_cmd(qs .. "dock gaming"))
+hl.bind(Mod .. " + ALT + 1", hl.dsp.exec_cmd(qs .. "dock item 1"))
+hl.bind(Mod .. " + ALT + 2", hl.dsp.exec_cmd(qs .. "dock item 2"))
+hl.bind(Mod .. " + ALT + 3", hl.dsp.exec_cmd(qs .. "dock item 3"))
+hl.bind(Mod .. " + ALT + 4", hl.dsp.exec_cmd(qs .. "dock item 4"))
+hl.bind(Mod .. " + ALT + 5", hl.dsp.exec_cmd(qs .. "dock item 5"))
+hl.bind(Mod .. " + ALT + 6", hl.dsp.exec_cmd(qs .. "dock item 6"))
+hl.bind(Mod .. " + ALT + 7", hl.dsp.exec_cmd(qs .. "dock item 7"))
+hl.bind(Mod .. " + ALT + 8", hl.dsp.exec_cmd(qs .. "dock item 8"))
+hl.bind(Mod .. " + ALT + 9", hl.dsp.exec_cmd(qs .. "dock item 9"))
+
 -- Lock-key hints in the island (non-consuming: the key still works).
 -- On release the CAPS / MOD2 modifier is already set when the lock turns ON, hence the second bind.
 hl.bind("Caps_Lock", hl.dsp.exec_cmd(qs .. "keys refresh"), { release = true, non_consuming = true })

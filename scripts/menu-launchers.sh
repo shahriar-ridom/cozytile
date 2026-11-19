@@ -1,37 +1,30 @@
 #!/usr/bin/env bash
-# Global menu: Hyprland cannot export menus from native-Wayland windows, so apps that should show
-# their menus in the bar run through XWayland. This writes launcher overrides to
-# ~/.local/share/applications for Dolphin, LibreWolf and Zen only; every other app stays native.
+# Global menu, native Wayland: apps run natively and scripts/globalmenu.py finds their menus on the session bus
+# (Qt apps export one at /MenuBar/N without registering it; nothing to set up for them).
+# Firefox-family browsers only export a menu on Wayland with two prefs, which this writes into a marked block of
+# every LibreWolf / Zen / Firefox profile's user.js. Restart the browser afterwards.
+# It also deletes the XWayland launcher overrides that earlier versions of this script wrote.
 #
-#   menu-launchers.sh            install
-#   menu-launchers.sh --remove   delete the overrides again
-# Apps launched from a terminal or a keybind (not the launcher/desktop entry) need the same variables:
-#   Qt:       QT_QPA_PLATFORM=xcb QT_QPA_PLATFORMTHEME=gtk3 dolphin
-#   Firefox:  MOZ_ENABLE_WAYLAND=0 GDK_BACKEND=x11 zen-browser   (and widget.gtk.global-menu.enabled = true)
+#   menu-launchers.sh            set up
+#   menu-launchers.sh --remove   take the prefs out again
 set -euo pipefail
-SYS=/usr/share/applications
 DEST="${XDG_DATA_HOME:-$HOME/.local/share}/applications"
-QT="QT_QPA_PLATFORM=xcb QT_QPA_PLATFORMTHEME=gtk3"
-FX="MOZ_ENABLE_WAYLAND=0 GDK_BACKEND=x11"
 MARK="# cozytile-global-menu"
-APPS=("org.kde.dolphin:$QT" "librewolf:$FX" "zen:$FX")
-# GTK apps need the appmenu-gtk-module package (sudo pacman -S appmenu-gtk-module); skipped without it
-GTK="GTK_MODULES=appmenu-gtk-module GDK_BACKEND=x11"
-if ls /usr/lib/gtk-3.0/modules/libappmenu-gtk3-module.so /usr/lib/gtk-3.0/modules/libappmenu-gtk-module.so >/dev/null 2>&1; then
-  APPS+=("thunar:$GTK" "gimp:$GTK" "org.gimp.GIMP:$GTK")
-fi
+BEGIN="// cozytile-global-menu begin"
+END="// cozytile-global-menu end"
 
-for a in "${APPS[@]}"; do
-  id=${a%%:*}; vars=${a#*:}
-  src="$SYS/$id.desktop"; dst="$DEST/$id.desktop"
-  if [ "${1:-}" = "--remove" ]; then
-    if grep -qsF "$MARK" "$dst"; then rm "$dst"; echo "removed $dst"; fi
-    continue
-  fi
-  [ -f "$src" ] || { echo "skip $id (not installed)"; continue; }
-  if [ -f "$dst" ] && ! grep -qsF "$MARK" "$dst"; then echo "skip $id ($dst is your own override)"; continue; fi
-  mkdir -p "$DEST"
-  { echo "$MARK"; sed "s|^Exec=|Exec=env $vars |" "$src"; } > "$dst"
-  echo "wrote $dst"
+for f in "$DEST"/*.desktop; do
+  if grep -qsF "$MARK" "$f"; then rm "$f"; echo "removed $f"; fi
 done
 command -v update-desktop-database >/dev/null && update-desktop-database "$DEST" 2>/dev/null || true
+
+for prof in "$HOME"/.config/librewolf/librewolf/*/ "$HOME"/.librewolf/*/ "$HOME"/.config/zen/*/ "$HOME"/.zen/*/ \
+            "$HOME"/.mozilla/firefox/*/; do
+  [ -f "$prof/prefs.js" ] || continue
+  js="${prof%/}/user.js"
+  [ -f "$js" ] && sed -i "\|^$BEGIN\$|,\|^$END\$|d" "$js"
+  if [ "${1:-}" = "--remove" ]; then echo "cleared $js"; continue; fi
+  printf '%s\nuser_pref("widget.gtk.global-menu.enabled", true);\nuser_pref("widget.gtk.global-menu.wayland.enabled", true);\n%s\n' \
+    "$BEGIN" "$END" >> "$js"
+  echo "wrote $js"
+done

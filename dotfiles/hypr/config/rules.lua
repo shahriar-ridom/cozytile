@@ -13,7 +13,7 @@
 
 hl.layer_rule({
 	name = "cozytile-blur",
-	match = { namespace = "^cozytile-(bar|island|launcher|power|wallpaper|audio|logomenu|globalmenu|stats|settings|osd|search|notifications|notification-center|overview)$" },
+	match = { namespace = "^cozytile-(bar|island|launcher|power|wallpaper|audio|logomenu|globalmenu|stats|settings|osd|search|notifications|notification-center|overview|dock|dock-menu|dock-peek)$" },
 	blur = true,
 	blur_popups = true,
 	ignore_alpha = 0.4,
@@ -24,6 +24,19 @@ hl.layer_rule({
 	match = { namespace = "^cozytile-(launcher|power|wallpaper|audio)$" },
 	dim_around = true,
 	animation = "popin 90%",
+})
+
+hl.layer_rule({
+	name = "cozytile-dock",
+	match = { namespace = "^cozytile-dock$" },
+	animation = "slide bottom",
+})
+
+-- the dock's right-click menu (a full-screen click catcher) and window peek animate their cards in QML
+hl.layer_rule({
+	name = "cozytile-dock-menu",
+	match = { namespace = "^cozytile-dock-(menu|peek)$" },
+	no_anim = true,
 })
 
 ------------------------------------------------------------

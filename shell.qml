@@ -15,6 +15,7 @@ import "modules/power"
 import "modules/settings"
 import "modules/wallpaper"
 import "modules/stage"
+import "modules/dock"
 
 ShellRoot {
     // singletons load lazily; WallpaperService restores the saved wallpaper on creation; night light must run its schedule from startup
@@ -128,6 +129,19 @@ ShellRoot {
         function list(): string { return StageService.stages.map(s => (s.id === StageService.activeId ? "* " : "  ") + s.id + " " + s.name + " (" + StageService.windows(s.id).length + ")").join("\n"); }
     }
     IpcHandler {
+        target: "dock"
+        function toggle(): void { DockService.toggle(); }
+        // add a folder stack (a directory, or "recent")
+        function addStack(path: string): void { DockService.addStack(path); }
+        // open a quick tool's panel on the focused screen: clipboard, screenshot, notes, system
+        function tool(id: string): void { DockService.openTool(id); }
+        // force a mode: normal, hidden, gaming; "auto" (or anything else) goes back to detecting it
+        function mode(name: string): void { DockService.modeOverride = ["normal", "hidden", "gaming"].indexOf(name) >= 0 ? name : ""; }
+        function gaming(): void { DockService.toggleGaming(); }
+        // launch or focus the nth app in the dock (1-based)
+        function item(n: int): void { DockService.activateNth(n); }
+    }
+    IpcHandler {
         target: "theme"
         function next(): void { Theme.next(); }
         function set(name: string): void { Theme.apply(name); }
@@ -178,6 +192,12 @@ ShellRoot {
     Variants {
         model: Quickshell.screens
         Island { required property var modelData; screen: modelData }
+    }
+
+    // ---- dock (one per screen) ----
+    Variants {
+        model: Settings.dockEnabled ? Quickshell.screens : []
+        Dock { required property var modelData; screen: modelData }
     }
 
     // ---- desktop clock (one per screen, behind all windows) ----

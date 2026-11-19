@@ -43,6 +43,7 @@ It is a Wayland-native take on the [Cozytile](https://github.com/Darkkal44/Cozyt
 | **Launcher** | Apps, windows, calculator, conversions, files, emoji, clipboard, web search, commands |
 | **Notifications** | Built-in daemon with history, actions, progress bars and Do-Not-Disturb |
 | **Overview (Stage)** | Mission Control-style view of every desktop and window, with drag and drop |
+| **Dock** | Magnifying dock with pinned and running apps, window previews, folder stacks, quick tools and Trash; adapts to fullscreen apps and games |
 | **Settings app** | Themes, bar, display, windows, input, autostart, lock screen, power and more |
 | **Desktop clock** | Minimal, stacked or analog, behind your windows |
 | **Wallpapers** | Per-monitor picker, plus a theme built from the picture |
@@ -270,6 +271,9 @@ copies next to them.
 | `Super + N` | Neovim in the terminal |
 | `Super + Space` or `Super + D` | Launcher |
 | `Super + Tab` or `Super + Alt + S` | Overview |
+| `Super + Alt + 1` to `9` | Launch or focus the nth app in the dock |
+| `Super + Alt + V`, `P`, `N`, `M` | Dock tools: clipboard, screenshot, notes, system monitor |
+| `Super + Alt + G` | Toggle the dock's gaming mode |
 | `Super + Ctrl + Tab` (`+ Shift` for previous) | Next desktop |
 | `Super + A`, `Super + Shift + N` or `Super + Shift + I` | Island (notifications, media, timer) |
 | `Super + Shift + T` | Next theme |
@@ -327,7 +331,7 @@ Open the settings app from the logo's menu in the bar (**System Settings...**), 
 qs -c cozytile ipc call settings open <page>
 ```
 
-Pages: `appearance`, `desktop`, `lock screen`, `bar`, `general`, `display`, `windows`, `stage`, `input`, `autostart`, `power`, `about`.
+Pages: `appearance`, `desktop`, `lock screen`, `bar`, `general`, `display`, `windows`, `stage`, `dock`, `input`, `autostart`, `power`, `about`.
 
 | Group | Page | What's in it |
 |---|---|---|
@@ -339,6 +343,7 @@ Pages: `appearance`, `desktop`, `lock screen`, `bar`, `general`, `display`, `win
 | System | **Display** | Night light, software dimming, monitors (resolution, refresh, scale, rotation, position, VRR) |
 | System | **Windows** | Layout (dwindle, master, scrolling), gaps, rounding, borders, opacity, blur, shadows, animations |
 | System | **Stage** | Overview edge, corner radius, animation speed, app rules |
+| Shell | **Dock** | Hiding, icon size, magnification, quick tools, folder stacks, Trash, context awareness |
 | System | **Input** | Keyboard layouts, XKB options, key repeat, pointer speed, touchpad, cursor |
 | System | **Autostart** | Commands and apps started at login |
 | System | **Power & idle** | Lock, screen-off and suspend timeouts |
@@ -366,7 +371,7 @@ Pages: `appearance`, `desktop`, `lock screen`, `bar`, `general`, `display`, `win
 
 Settings are saved to `~/.local/state/cozytile/settings.json` and reload live. Keys include `theme`,
 `syncDotfiles`, `wallpaperDirs`, `wallpapers`, `wallpaperTheming`, `osdTimeout` (ms), `showWorkspaceNumbers`,
-`showWindowTitle`, `globalMenu`, `dnd`, `showTemp`, `statsInterval` (ms), `frostedGlass`, `desktopClock`, `stage` and
+`showWindowTitle`, `globalMenu`, `dnd`, `showTemp`, `statsInterval` (ms), `frostedGlass`, `desktopClock`, `stage`, `dock*` (pinned apps, stacks, tools, hiding, size) and
 `lockscreen`. The settings app also stores `hypr` (Hyprland overrides), `monitors`, `autostart` and `idle`.
 
 Design tokens (fonts, bar height, margins, radii, animation timings) are in `config/Theme.qml`.
@@ -389,12 +394,15 @@ recolours everything automatically.
 
 ### Global menu setup
 
-The global menu needs apps to run through XWayland, because Hyprland can't export menus from native Wayland windows.
+Apps run natively on Wayland. Native apps can't register their menus with the registrar (they have no X11 window id),
+so the bridge finds them on the session bus through the focused window's process instead.
 
-- `scripts/menu-launchers.sh` writes launcher overrides for Dolphin, LibreWolf and Zen (plus Thunar and GIMP when
-  `appmenu-gtk-module` is installed). Run it with `--remove` to undo.
-- Start those apps from the launcher or a desktop entry. Only apps started after the shell is running export a menu.
-- Firefox-family browsers also need `widget.gtk.global-menu.enabled` set to `true` in the profile (`user.js`).
+- Qt apps (Dolphin, ...) need nothing.
+- Firefox-family browsers need `widget.gtk.global-menu.enabled` and `widget.gtk.global-menu.wayland.enabled`.
+  `scripts/menu-launchers.sh` writes both into every LibreWolf, Zen and Firefox profile's `user.js` (restart the
+  browser afterwards) and deletes the XWayland launcher overrides that older versions wrote. `--remove` takes the prefs out.
+- An app with several windows shows the menu of its newest window: nothing on the bus says which menu belongs to
+  which Wayland window.
 - Some apps never export a menu. kitty has no global-menu support on Linux.
 
 ---
@@ -412,6 +420,8 @@ qs -c cozytile ipc call timer start 5m|90s|1h30m|25:00   # also: stop, toggle, a
 qs -c cozytile ipc call workspace goto <n>|next|prev
 qs -c cozytile ipc call stage overview|next|prev|goto <n>|list
 qs -c cozytile ipc call stage create|switchTo|rename|remove <name>
+qs -c cozytile ipc call dock toggle|gaming|item <n>|tool clipboard|screenshot|notes|system|record
+qs -c cozytile ipc call dock mode normal|hidden|gaming|auto   # also: addStack <path>
 qs -c cozytile ipc call wallpaper toggle|set <path>
 qs -c cozytile ipc call theme next|set sakura|get
 qs -c cozytile ipc call frost toggle|on|off|get
