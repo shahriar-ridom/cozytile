@@ -38,3 +38,4 @@ fi
 
 # Cozytile: prompt, aliases, cozytheme (installed by setup.sh)
 [ -f "$HOME/.config/cozytile/zsh/cozytile.zsh" ] && source "$HOME/.config/cozytile/zsh/cozytile.zsh"
+export HYPERFRAMES_PYTHON="$HOME/.local/share/hyperframes-venv/bin/python"

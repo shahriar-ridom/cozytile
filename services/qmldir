@@ -21,3 +21,9 @@ singleton DesktopClockService 1.0 DesktopClockService.qml
 singleton RecentService 1.0 RecentService.qml
 singleton FrostService 1.0 FrostService.qml
 singleton StageService 1.0 StageService.qml
+singleton WindowService 1.0 WindowService.qml
+singleton DockService 1.0 DockService.qml
+singleton FolderService 1.0 FolderService.qml
+singleton ClipboardService 1.0 ClipboardService.qml
+singleton NotesService 1.0 NotesService.qml
+singleton IconService 1.0 IconService.qml

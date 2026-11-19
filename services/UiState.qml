@@ -31,6 +31,7 @@ Singleton {
     property real logoMenuX: 0
     property bool overview: false         // Mission Control style overview of every desktop and window
     property string islandOpenOn: ""      // name of the screen whose island is expanded
+    property string dockPeek: ""          // name of the screen whose dock shows a Window Peek (hover-driven)
 
     readonly property var focusedScreen: {
         const m = Hyprland.focusedMonitor;
@@ -47,7 +48,7 @@ Singleton {
         closeAll();
         islandOpenOn = was ? "" : n;
     }
-    function closeAll() { overview = false; islandOpenOn = ""; launcher = false; search = false; power = false; wallpaper = false; wallpaperFor = ""; audioPicker = false; settings = false; statPopup = ""; globalMenuIndex = -1; logoMenu = false; }
+    function closeAll() { overview = false; islandOpenOn = ""; launcher = false; search = false; power = false; wallpaper = false; wallpaperFor = ""; audioPicker = false; settings = false; statPopup = ""; globalMenuIndex = -1; logoMenu = false; dockPeek = ""; }
     function toggleLogoMenu(x) {
         const was = logoMenu;
         closeAll();

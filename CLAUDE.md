@@ -13,7 +13,7 @@ Cozytile is a Hyprland desktop built on **Quickshell** (QML): top bar, dynamic i
 - Full desktop: `./setup.sh [--dry-run] [--packages] [--sddm] [--theme NAME]`. It is safe to re-run, and it backs up anything it replaces as `*.bak-<timestamp>`. `./rollback.sh` and `./uninstall.sh [--purge]` undo it.
 - Start the installed shell: `scripts/launch.sh` (wraps `qs -c cozytile` with transparent huge pages disabled).
 - Lint QML: `qmllint <files>`. Quickshell's own logs are in `/run/user/$UID/quickshell/by-id/*/log.qslog`. A QML error in any file makes the **whole** config fail to load ("Failed to load configuration"), so always launch it once after changing QML.
-- Control the running shell: `qs -c cozytile ipc call <target> <function>`. The targets are the `IpcHandler` blocks in `shell.qml` (launcher, search, notifications, island, timer, clock, keys, power, settings, wallpaper, workspace, theme, nightlight, audio, brightness, frost, stage). Hyprland keybinds call these (`dotfiles/hypr/config/binds.lua`).
+- Control the running shell: `qs -c cozytile ipc call <target> <function>`. The targets are the `IpcHandler` blocks in `shell.qml` (launcher, search, notifications, island, timer, clock, keys, power, settings, wallpaper, workspace, theme, nightlight, audio, brightness, frost, stage, dock). Hyprland keybinds call these (`dotfiles/hypr/config/binds.lua`).
 - Re-render themed dotfiles: `dotfiles/theme-apply.sh <theme>`.
 
 ### Testing a visual change without touching the live shell
@@ -33,7 +33,11 @@ Layers, each with its own `qmldir` that must list new files:
 
 **Frosted glass** (`Settings.frostedGlass`, toggled by `FrostService`) copies the kitty terminal's look across the desktop: palette-tinted surfaces at about 0.78 opacity over a compositor blur, with no rims or gradients. `Theme.frost` makes the panel fills translucent (`popupBg`, `barCapFill`, ...), window translucency exists only while it is on (`dotfiles/hypr/config/frost.lua`, loaded through the generated Lua; `rules.lua` and `kitty.conf` stay opaque, kitty's opacity comes from the rendered `colors.conf`), the blur settings are left as they are, `rules.lua` blurs every `cozytile-*` layer, and `render.py` reads the flag for hyprlock, GTK, Qt and SDDM. `barCap`/`barMid` stay solid because they double as text-on-accent colours: use the `*Fill` tokens for backgrounds. Palette entries are plain strings, so use `Theme.veil(color, alpha)` rather than reading `.r/.g/.b` off them.
 
-**Global menu** is a Python bridge, not QML-only. `scripts/globalmenu.py` registers as the session's `com.canonical.AppMenu.Registrar`, reads the focused app's dbusmenu and talks to the shell over stdin/stdout JSON lines (protocol in its docstring). Hyprland can't export menus from native-Wayland windows, so `scripts/menu-launchers.sh` writes XWayland launcher overrides for a few apps (Dolphin, LibreWolf, Zen). Run it with `--remove` to undo.
+**Dock** (`modules/dock/`, `DockService`, `WindowService`) is a macOS-style pill per screen on `WlrLayer.Top` (namespace `cozytile-dock`). `Dock.qml` lays the icons out itself (magnification, drag reorder, hiding, drop targets) and the popups (`WindowPeek`, `FolderStack`, `ToolPanel`, `DockContext`) are separate layer windows kept mapped but transparent, since creating one costs ~0.5 s. `DockService.items` merges pinned, running, stacks, tools and the Trash; `WindowService` groups Hyprland toplevels by desktop entry. Context awareness: fullscreen hides the dock per screen, a fullscreen game (`WindowService.gameClass`) or `dock mode gaming` swaps in the minimal dock on the Overlay layer, all gated by `Settings.dockContext`. Keep the whole row in one window: resizing it mid-drag desyncs pointer coordinates.
+
+**Icon packs** (`IconService`, settings page `PageIcons.qml`) go through `scripts/icon-theme.sh` (`list`, `apply`, `install`, `remove`). The system holds the choice, not `Settings`: gsettings, GTK `settings.ini` (which is the symlinked repo file) and `qt6ct.conf`. Qt caches the icons it has already drawn for the life of the process, so applying a pack restarts the installed shell.
+
+**Global menu** is a Python bridge, not QML-only. `scripts/globalmenu.py` registers as the session's `com.canonical.AppMenu.Registrar`, reads the focused app's dbusmenu and talks to the shell over stdin/stdout JSON lines (protocol in its docstring). Apps run natively: native-Wayland apps export a dbusmenu without registering it (Qt under `/MenuBar/N`, Firefox under `/com/canonical/menu/N`), so the bridge finds it on the bus connections owned by the focused window's pid. Firefox-family browsers need two prefs for that, which `scripts/menu-launchers.sh` writes into their profiles' `user.js` (`--remove` undoes it).
 
 **Dotfiles are symlinked, not copied**: `~/.config/hypr`, kitty, zsh and the GTK settings point into `dotfiles/`. Edit them in the repo. Hyprland uses the **Lua config** (0.55 or newer, `dotfiles/hypr/hyprland.lua`). Layer rules in `config/rules.lua` match the `cozytile-*` namespaces set through `WlrLayershell.namespace`, so a new layer window that should blur or animate needs its namespace added there. Machine-specific overrides go in the git-ignored `dotfiles/hypr/config/local.lua`.
 
@@ -42,3 +46,64 @@ Layers, each with its own `qmldir` that must list new files:
 - Don't name custom properties after built-in `Item` or window members (`top`, `scale`, and similar). It fails as "Cannot override FINAL property" and takes down the whole shell.
 - Qt's `h` time format is 24-hour unless the format string also contains `AP`. Compute 12-hour values by hand.
 - The desktop clock (`modules/clock/`) sits on `WlrLayer.Bottom` with an empty `mask: Region {}`, so it is behind windows and click-through. To see it in a screenshot you must temporarily move it to Overlay, because windows cover it.
+
+## Behavioral guidelines
+
+Guidelines to reduce common LLM coding mistakes (from [andrej-karpathy-skills](https://github.com/multica-ai/andrej-karpathy-skills)). They bias toward caution over speed; for trivial tasks, use judgment. This repo has no test suite, so "verify" means launching the shell and checking the result (see Commands).
+
+### 1. Think Before Coding
+
+**Don't assume. Don't hide confusion. Surface tradeoffs.**
+
+Before implementing:
+- State your assumptions explicitly. If uncertain, ask.
+- If multiple interpretations exist, present them - don't pick silently.
+- If a simpler approach exists, say so. Push back when warranted.
+- If something is unclear, stop. Name what's confusing. Ask.
+
+### 2. Simplicity First
+
+**Minimum code that solves the problem. Nothing speculative.**
+
+- No features beyond what was asked.
+- No abstractions for single-use code.
+- No "flexibility" or "configurability" that wasn't requested.
+- No error handling for impossible scenarios.
+- If you write 200 lines and it could be 50, rewrite it.
+
+Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
+
+### 3. Surgical Changes
+
+**Touch only what you must. Clean up only your own mess.**
+
+When editing existing code:
+- Don't "improve" adjacent code, comments, or formatting.
+- Don't refactor things that aren't broken.
+- Match existing style, even if you'd do it differently.
+- If you notice unrelated dead code, mention it - don't delete it.
+
+When your changes create orphans:
+- Remove imports/variables/functions that YOUR changes made unused.
+- Don't remove pre-existing dead code unless asked.
+
+The test: Every changed line should trace directly to the user's request.
+
+### 4. Goal-Driven Execution
+
+**Define success criteria. Loop until verified.**
+
+Transform tasks into verifiable goals:
+- "Add validation" → "Write tests for invalid inputs, then make them pass"
+- "Fix the bug" → "Write a test that reproduces it, then make it pass"
+- "Refactor X" → "Ensure tests pass before and after"
+
+For multi-step tasks, state a brief plan:
+```
+1. [Step] → verify: [check]
+2. [Step] → verify: [check]
+3. [Step] → verify: [check]
+```
+
+Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
+

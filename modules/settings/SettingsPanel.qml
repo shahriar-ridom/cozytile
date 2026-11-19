@@ -25,13 +25,14 @@ PanelWindow {
     onPageChanged: UiState.settingsPageIndex = page
     readonly property var pages: [
         { name: "Appearance", icon: "", file: "PageAppearance.qml", group: "Personalise" },
+        { name: "Icons",      icon: "󰀻", file: "PageIcons.qml",      group: "Personalise" },
         { name: "Desktop",   icon: "", file: "PageDesktop.qml",   group: "Personalise" },
         { name: "Lock screen", icon: "", file: "PageLockscreen.qml", group: "Personalise" },
         { name: "Bar",        icon: "", file: "PageBar.qml",        group: "Shell" },
+        { name: "Dock",       icon: "󱂩", file: "PageDock.qml",       group: "Shell" },
         { name: "General",    icon: "", file: "PageGeneral.qml",    group: "Shell" },
         { name: "Display",    icon: "", file: "PageDisplay.qml",    group: "System" },
         { name: "Windows",    icon: "", file: "PageWindows.qml",    group: "System" },
-        { name: "Stage",      icon: "", file: "PageStage.qml",      group: "System" },
         { name: "Input",      icon: "", file: "PageInput.qml",      group: "System" },
         { name: "Autostart",  icon: "", file: "PageAutostart.qml",  group: "System" },
         { name: "Power & idle", icon: "", file: "PagePower.qml",    group: "System" },

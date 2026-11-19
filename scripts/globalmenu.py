@@ -9,15 +9,20 @@ stdin  (one command per line)
     watch <pid>              follow the menu of the window owned by <pid> (0 = none)
     show <pid> <id>          AboutToShow for an item, then refresh (call before opening a submenu)
     click <pid> <id>         activate an item
-Sources: dbusmenu (registered through the registrar) and GTK's org.gtk.Menus (GApplication
-menubar, discovered by scanning the session bus for the app's exported menu paths).
+Sources: dbusmenu (registered through the registrar), dbusmenu exported without registering (native
+Wayland Qt apps under /MenuBar/N, Firefox with widget.gtk.global-menu.wayland.enabled under
+/com/canonical/menu/N: they have no X11 window id to register with) and GTK's org.gtk.Menus (GApplication
+menubar). Unregistered menus are found by scanning the bus connections owned by the window's process.
 stdout (one JSON object per line)
     {"type":"status","registrar":true|false}
     {"type":"menu","pid":N,"items":[{id,label,enabled,sep,toggle,state,shortcut,children}]}
 """
+import ctypes
 import json
 import os
+import signal
 import sys
+import traceback
 
 import gi
 gi.require_version("Gio", "2.0")
@@ -247,6 +252,58 @@ def gtk_activate(reg, iid):
              GLib.Variant("(sava{sv})", (info[1], params, {})), None, Gio.DBusCallFlags.NONE, 2000, None, None, None)
 
 
+# ---- dbusmenu exported without registering (native Wayland) -----------------------------------
+
+DBUSMENU_ROOTS = ("/MenuBar", "/com/canonical/menu")
+found_regs = {}      # (service, path) -> registration, so the same dict is returned while the menu exists
+
+
+def owned_names(pid):
+    """Unique bus names whose process is `pid` or a descendant of it."""
+    try:
+        names = bus.call_sync("org.freedesktop.DBus", "/org/freedesktop/DBus", "org.freedesktop.DBus",
+                              "ListNames", None, GLib.VariantType("(as)"), Gio.DBusCallFlags.NONE, 1000, None).unpack()[0]
+    except GLib.Error:
+        return []
+    out_ = []
+    for name in names:
+        if name.startswith(":"):
+            npid = pid_of(name)
+            if npid and (npid == pid or pid in ancestors(npid)):
+                out_.append((name, npid))
+    return out_
+
+
+def dbusmenu_find(pid):
+    """An unregistered dbusmenu menubar of `pid`. Re-checked on every lookup (two introspections per bus name)
+    so windows opened or closed later are followed. With several windows the newest menubar wins: nothing
+    on the bus ties a menubar to its Wayland window."""
+    best = None
+    for name, npid in owned_names(pid):
+        for root in DBUSMENU_ROOTS:
+            try:
+                r = bus.call_sync(name, root, "org.freedesktop.DBus.Introspectable", "Introspect", None,
+                                  GLib.VariantType("(s)"), Gio.DBusCallFlags.NONE, 800, None)
+                nodes = Gio.DBusNodeInfo.new_for_xml(r.unpack()[0]).nodes
+            except GLib.Error:
+                continue
+            for n in nodes:
+                try:
+                    num = int(n.path)
+                except ValueError:
+                    continue
+                if best is None or num > best[0]:
+                    best = (num, name, root + "/" + n.path, npid)
+    if best is None:
+        return None
+    key = (best[1], best[2])
+    reg = found_regs.get(key)
+    if reg is None:
+        reg = found_regs[key] = {"service": best[1], "path": best[2], "pid": best[3], "seq": 0}
+        watch_service(best[1])
+    return reg
+
+
 def find(pid):
     """Newest registration owned by `pid`, or by one of its descendants (wrapper scripts)."""
     if pid <= 0:
@@ -256,7 +313,7 @@ def find(pid):
         if r["pid"] == pid or pid in ancestors(r["pid"]):
             if best is None or r["seq"] > best["seq"]:
                 best = r
-    return best or gtk_find(pid)
+    return best or dbusmenu_find(pid) or gtk_find(pid)
 
 
 def clean(label):
@@ -303,10 +360,32 @@ def call(reg, method, params, sig, cb):
              Gio.DBusCallFlags.NONE, 2000, None, done, None)
 
 
+retry = {"pid": 0, "left": 0, "src": None}
+
+
+def retry_later(pid):
+    """A just-focused app may export its menu a moment after its window maps: look again a few times."""
+    if pid <= 0:
+        return
+    if retry["pid"] != pid:
+        retry.update(pid=pid, left=8)
+    if retry["left"] <= 0 or retry["src"]:
+        return
+
+    def fire():
+        retry["src"] = None
+        if current == pid:
+            push(pid)
+        return False
+    retry["left"] -= 1
+    retry["src"] = GLib.timeout_add(500, fire)
+
+
 def push(pid):
     reg = find(pid)
     if not reg:
         out({"type": "menu", "pid": pid, "items": []})
+        retry_later(pid)
         return
 
     if reg.get("kind") == "gtk":
@@ -338,7 +417,7 @@ def schedule(pid):
 
 
 def on_menu_signal(_c, sender, _p, _i, _s, _params, _u):
-    for r in list(regs.values()) + list(gtk_regs.values()):
+    for r in list(regs.values()) + list(gtk_regs.values()) + list(found_regs.values()):
         if r and r["service"] == sender and find(current) is r:
             schedule(current)
             return
@@ -355,6 +434,8 @@ def drop_service(service):
     for k in [k for k, r in regs.items() if r["service"] == service]:
         del regs[k]
     gtk_regs.pop(service, None)
+    for k in [k for k in found_regs if k[0] == service]:
+        del found_regs[k]
     for sid in subs.pop(service, []):
         bus.signal_unsubscribe(sid)
     if current:
@@ -426,7 +507,12 @@ def on_stdin(fd, cond):
     inbuf += data
     while b"\n" in inbuf:
         line, inbuf = inbuf.split(b"\n", 1)
-        run_command(line.decode("utf-8", "replace"))
+        # an exception escaping this callback would remove the stdin watch: the bridge would stop taking
+        # commands and never see the shell exit, keeping the registrar name from the next shell
+        try:
+            run_command(line.decode("utf-8", "replace"))
+        except Exception:
+            traceback.print_exc()
     return True
 
 
@@ -440,17 +526,27 @@ def on_name_acquired(_c, _n):
 
 
 def on_name_lost(_c, _n):
-    # another registrar (e.g. vala-panel-appmenu) owns the name; nothing for us to bridge
+    # another registrar owns the name: a newer bridge took it over, or a foreign one (e.g. vala-panel-appmenu)
+    # holds it without allowing replacement; nothing for us to bridge
     out({"type": "status", "registrar": False})
     loop.quit()
 
 
 if __name__ == "__main__":
+    # exit with the shell even if it dies without closing our stdin
+    try:
+        ctypes.CDLL(None).prctl(1, signal.SIGTERM)    # PR_SET_PDEATHSIG
+    except (OSError, AttributeError):
+        pass
+    if os.getppid() == 1:
+        sys.exit(0)
     loop = GLib.MainLoop()
     bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
     bus.signal_subscribe("org.freedesktop.DBus", "org.freedesktop.DBus", "NameOwnerChanged",
                          "/org/freedesktop/DBus", None, Gio.DBusSignalFlags.NONE, on_name_owner, None)
-    Gio.bus_own_name_on_connection(bus, REG_NAME, Gio.BusNameOwnerFlags.DO_NOT_QUEUE, on_name_acquired, on_name_lost)
+    # replace a stale bridge left by an earlier shell (it allows replacement), never queue behind a foreign registrar
+    Gio.bus_own_name_on_connection(bus, REG_NAME, Gio.BusNameOwnerFlags.DO_NOT_QUEUE | Gio.BusNameOwnerFlags.ALLOW_REPLACEMENT
+                                   | Gio.BusNameOwnerFlags.REPLACE, on_name_acquired, on_name_lost)
     on_bus_acquired(bus, REG_NAME)
     GLib.io_add_watch(sys.stdin.fileno(), GLib.IOCondition.IN | GLib.IOCondition.HUP | GLib.IOCondition.ERR, on_stdin)
     try:
